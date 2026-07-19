@@ -446,7 +446,7 @@ export class AuthService {
     });
 
     const webBaseUrl = this.configService.get("WEB_BASE_URL", { infer: true });
-    const verifyUrl = `${webBaseUrl}/verify-email?token=${token}`;
+    const verifyUrl = `${webBaseUrl}/api/verify-email?token=${token}`;
     const emailContent = this.emailService.buildVerificationEmail(verifyUrl);
     await this.emailService.sendEmail({ to: email, ...emailContent });
   }
