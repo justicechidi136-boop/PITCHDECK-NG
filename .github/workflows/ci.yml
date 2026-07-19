@@ -38,18 +38,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      minio:
-        image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-        env:
-          MINIO_ROOT_USER: pitchdeck_minio
-          MINIO_ROOT_PASSWORD: pitchdeck_minio_dev
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     env:
       DATABASE_URL: postgresql://pitchdeck:pitchdeck_dev@localhost:5432/pitchdeck?schema=public
@@ -103,6 +91,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Start MinIO
+        run: |
+          docker run -d --name pitchdeck-minio-ci \
+            --network host \
+            -e MINIO_ROOT_USER=pitchdeck_minio \
+            -e MINIO_ROOT_PASSWORD=pitchdeck_minio_dev \
+            minio/minio:RELEASE.2025-04-22T22-12-26Z server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live && exit 0
+            sleep 2
+          done
+          echo "MinIO failed to become healthy"
+          docker logs pitchdeck-minio-ci
+          exit 1
+
       - name: Generate Prisma client
         run: pnpm db:generate
 
@@ -114,10 +117,6 @@ jobs:
 
       - name: Initialise object storage bucket
         run: |
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:9000/minio/health/live && break
-            sleep 2
-          done
           docker run --rm --network host minio/mc:latest sh -c \
             "mc alias set local http://127.0.0.1:9000 pitchdeck_minio pitchdeck_minio_dev && mc mb local/pitchdeck-uploads --ignore-existing"
 
@@ -161,18 +160,6 @@ jobs:
           - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      minio:
-        image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-        env:
-          MINIO_ROOT_USER: pitchdeck_minio
-          MINIO_ROOT_PASSWORD: pitchdeck_minio_dev
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -225,6 +212,21 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter @pitchdeck/web exec playwright install --with-deps chromium
 
+      - name: Start MinIO
+        run: |
+          docker run -d --name pitchdeck-minio-ci \
+            --network host \
+            -e MINIO_ROOT_USER=pitchdeck_minio \
+            -e MINIO_ROOT_PASSWORD=pitchdeck_minio_dev \
+            minio/minio:RELEASE.2025-04-22T22-12-26Z server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live && exit 0
+            sleep 2
+          done
+          echo "MinIO failed to become healthy"
+          docker logs pitchdeck-minio-ci
+          exit 1
+
       - name: Generate Prisma client
         run: pnpm db:generate
 
@@ -236,10 +238,6 @@ jobs:
 
       - name: Initialise object storage bucket
         run: |
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:9000/minio/health/live && break
-            sleep 2
-          done
           docker run --rm --network host minio/mc:latest sh -c \
             "mc alias set local http://127.0.0.1:9000 pitchdeck_minio pitchdeck_minio_dev && mc mb local/pitchdeck-uploads --ignore-existing"
 
