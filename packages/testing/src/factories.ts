@@ -1,4 +1,4 @@
-import { RoleType } from "@pitchdeck/contracts";
+﻿import { RoleType } from "@pitchdeck/contracts";
 
 export interface TestUserFactoryOptions {
   id?: string;
@@ -29,11 +29,12 @@ export function createTestApiMeta(requestId?: string) {
 
 export const TEST_ENV = {
   DATABASE_URL:
-    "postgresql://pitchdeck:pitchdeck_dev@localhost:5432/pitchdeck?schema=public",
-  REDIS_URL: "redis://:pitchdeck_redis_dev@localhost:6379",
+    "postgresql://pitchdeck:pitchdeck_dev@localhost:15432/pitchdeck?schema=public",
+  REDIS_URL: "redis://:pitchdeck_redis_dev@localhost:16379",
   MINIO_ENDPOINT: "localhost",
-  MINIO_PORT: "9000",
+  MINIO_PORT: "19000",
   MINIO_ACCESS_KEY: "pitchdeck_minio",
   MINIO_SECRET_KEY: "pitchdeck_minio_dev",
   MINIO_BUCKET: "pitchdeck-uploads",
 } as const;
+

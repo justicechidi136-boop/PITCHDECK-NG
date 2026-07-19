@@ -1,4 +1,4 @@
-services:
+﻿services:
   postgres:
     image: postgres:16-alpine
     container_name: pitchdeck-postgres
@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pitchdeck_dev}
       POSTGRES_DB: ${POSTGRES_DB:-pitchdeck}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-15432}:5432"
     volumes:
       - pitchdeck_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD:-pitchdeck_redis_dev}
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-16379}:6379"
     volumes:
       - pitchdeck_redis_data:/data
     healthcheck:
@@ -42,8 +42,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-pitchdeck_minio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-pitchdeck_minio_dev}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_API_HOST_PORT:-19000}:9000"
+      - "${MINIO_CONSOLE_HOST_PORT:-19001}:9001"
     volumes:
       - pitchdeck_minio_data:/data
     healthcheck:
@@ -71,3 +71,4 @@ volumes:
   pitchdeck_postgres_data:
   pitchdeck_redis_data:
   pitchdeck_minio_data:
+
