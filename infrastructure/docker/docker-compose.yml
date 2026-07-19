@@ -1,4 +1,4 @@
-﻿services:
+services:
   postgres:
     image: postgres:16-alpine
     container_name: pitchdeck-postgres
@@ -53,7 +53,7 @@
       retries: 5
 
   minio-init:
-    image: minio/mc:RELEASE.2025-04-16T18-20-55Z
+    image: minio/mc:latest
     container_name: pitchdeck-minio-init
     depends_on:
       minio:
