@@ -2,7 +2,7 @@
 
 PitchDeck Nigeria connects young Nigerian innovators, startups, students, researchers, inventors, and community organisations with government agencies, corporate organisations, angel investors, VC firms, NGOs, universities, incubators, philanthropists, and Nigerian diaspora sponsors.
 
-This repository contains the platform monorepo: public web, admin console, API, shared packages, local development services, authentication/RBAC (Stage 2), and CI workflows.
+This repository contains the platform monorepo: public web, admin console, API, shared packages, local development services, authentication/RBAC (Stage 2), profiles and pitch workflow (Stage 3), and CI workflows.
 
 ## Tech stack
 
@@ -186,28 +186,48 @@ E2E runs use unique emails per test, isolated fixture users, the email capture h
 
 Implemented in this milestone:
 
-- Innovator profiles with server-side completion scoring
-- Sponsor organisations, memberships, and verification workflow
-- Pitch drafts, immutable submissions, and status workflow
-- Secure MinIO uploads with malware scanning abstraction
+### Innovator profiles (`apps/web`, `apps/api`)
+
+- Profile create/update with sector, state, and completion scoring
+- Server-side completion percentage for pitch readiness
+
+### Sponsor organisations (`apps/web`, `apps/api`)
+
+- Sponsor org registration, memberships, and role management
+- Verification workflow with admin review and status transitions
+
+### Pitch workflow (`apps/web`, `apps/api`)
+
+- Draft pitches with autosave and validation
+- Immutable submission with status lifecycle (draft → submitted → under review → approved/rejected)
 - Reviewer assignments, conflict declarations, and structured reviews
-- Admin pitch triage and sponsor verification
-- Verified-sponsor discovery of approved pitches
-- State-scoped admin isolation preserved from Stage 2
+- Admin pitch triage and moderation
+
+### File uploads (`apps/api`)
+
+- Secure MinIO/S3 uploads with presigned URLs
+- Malware scanning abstraction before attachment to pitches or profiles
+
+### Sponsor discovery (`apps/web`, `apps/api`)
+
+- Verified sponsors can browse and filter approved pitches
+- Discovery respects sponsor verification and pitch approval state
+
+State-scoped admin isolation from Stage 2 is preserved throughout Stage 3.
 
 See [docs/API.md](./docs/API.md) for Stage 3 endpoints.
 
 ## Deferred (Stage 4+)
 
-- Pitch submission and review workflows
-- Sponsor discovery and matching
-- OAuth/OIDC social login, MFA, phone OTP
-- Payments, messaging, challenges, file uploads
+- OAuth/OIDC social login, MFA, and phone OTP
+- Payments and billing
+- Messaging and notifications
+- Challenges and competitions
 
 ## Documentation
 
 - [AGENTS.md](./AGENTS.md) — AI agent and contributor guidance
-- [docs/API.md](./docs/API.md) — Auth and admin endpoints
+- [docs/API.md](./docs/API.md) — Auth, admin, and Stage 3 endpoints
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — System design
 - [docs/SECURITY.md](./docs/SECURITY.md) — Security posture
 - [docs/PRODUCT_REQUIREMENTS.md](./docs/PRODUCT_REQUIREMENTS.md) — Product scope
