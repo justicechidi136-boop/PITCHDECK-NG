@@ -5,11 +5,12 @@ const WEB_ORIGIN = process.env.WEB_BASE_URL ?? "http://localhost:3000";
 
 function mergeCookies(existing: string, headers: Headers): string {
   const getSetCookie = (headers as Headers & { getSetCookie?: () => string[] }).getSetCookie;
+  const setCookieHeader = headers.get("set-cookie");
   const parts =
     typeof getSetCookie === "function"
       ? getSetCookie.call(headers).map((c) => c.split(";")[0])
-      : headers.get("set-cookie")
-        ? [headers.get("set-cookie")!.split(";")[0]]
+      : setCookieHeader
+        ? [setCookieHeader.split(";")[0]]
         : [];
   const merged = new Map<string, string>();
   for (const part of [...existing.split("; ").filter(Boolean), ...parts]) {
