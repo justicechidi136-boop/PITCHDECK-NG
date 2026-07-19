@@ -5,6 +5,7 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomBytes } from "node:crypto";
@@ -50,12 +51,11 @@ export class ObjectStorageService {
     return randomBytes(32).toString("hex");
   }
 
-  async createUploadUrl(objectKey: string, contentType: string, maxBytes: number): Promise<string> {
+  async createUploadUrl(objectKey: string, contentType: string, _maxBytes: number): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: objectKey,
       ContentType: contentType,
-      ContentLength: maxBytes,
     });
     return getSignedUrl(this.client, command, { expiresIn: this.signedUrlTtl });
   }
@@ -89,6 +89,21 @@ export class ObjectStorageService {
     await this.client.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: objectKey }),
     );
+  }
+
+  async getObjectBuffer(objectKey: string): Promise<Buffer | null> {
+    try {
+      const result = await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: objectKey }),
+      );
+      if (!result.Body) {
+        return null;
+      }
+      const bytes = await result.Body.transformToByteArray();
+      return Buffer.from(bytes);
+    } catch {
+      return null;
+    }
   }
 
   getBucket(): string {

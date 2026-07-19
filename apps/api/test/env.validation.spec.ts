@@ -20,6 +20,22 @@ describe("env validation", () => {
     ).toThrow();
   });
 
+  it("rejects mock and disabled scanning in production", () => {
+    expect(() =>
+      validateEnv({
+        ...baseEnv,
+        NODE_ENV: "production",
+        AUTH_COOKIE_SECURE: "true",
+        EMAIL_PROVIDER: "smtp",
+        SMTP_HOST: "smtp.example.com",
+        SMTP_PORT: "587",
+        OBJECT_STORAGE_ACCESS_KEY: "key",
+        OBJECT_STORAGE_SECRET_KEY: "secret",
+        FILE_SCAN_MODE: "mock",
+      }),
+    ).toThrow(/FILE_SCAN_MODE must be clamav in production/);
+  });
+
   it("parses duration strings", () => {
     expect(parseDurationToMs("15m")).toBe(900_000);
     expect(parseDurationToMs("7d")).toBe(604_800_000);
