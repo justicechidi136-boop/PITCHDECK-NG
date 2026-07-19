@@ -76,6 +76,7 @@ export function RegisterForm() {
             label="Password"
             type="password"
             required
+            minLength={12}
             autoComplete="new-password"
             aria-describedby="password-hint"
           />
