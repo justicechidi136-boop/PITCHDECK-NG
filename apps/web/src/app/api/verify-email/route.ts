@@ -6,16 +6,22 @@ const WEB_ORIGIN = process.env.WEB_BASE_URL ?? "http://localhost:3000";
 function mergeCookies(existing: string, headers: Headers): string {
   const getSetCookie = (headers as Headers & { getSetCookie?: () => string[] }).getSetCookie;
   const setCookieHeader = headers.get("set-cookie");
-  const parts =
+  const rawParts =
     typeof getSetCookie === "function"
-      ? getSetCookie.call(headers).map((c) => c.split(";")[0])
+      ? getSetCookie.call(headers)
       : setCookieHeader
-        ? [setCookieHeader.split(";")[0]]
+        ? [setCookieHeader]
         : [];
+  const parts = rawParts
+    .map((cookie) => cookie.split(";")[0] ?? "")
+    .filter((cookiePart) => cookiePart.length > 0);
   const merged = new Map<string, string>();
   for (const part of [...existing.split("; ").filter(Boolean), ...parts]) {
-    const [name, ...rest] = part.split("=");
-    if (name) merged.set(name, rest.join("="));
+    const eqIndex = part.indexOf("=");
+    if (eqIndex <= 0) continue;
+    const name = part.slice(0, eqIndex);
+    const value = part.slice(eqIndex + 1);
+    merged.set(name, value);
   }
   return [...merged.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
 }
