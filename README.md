@@ -182,7 +182,22 @@ pnpm.cmd --filter @pitchdeck/admin-web test:e2e
 
 E2E runs use unique emails per test, isolated fixture users, the email capture helper (no tokens in logs), and API/database fixtures — never browser localStorage role manipulation.
 
-## Deferred (Stage 3+)
+## Stage 3 — Profiles, pitches, and sponsor verification
+
+Implemented in this milestone:
+
+- Innovator profiles with server-side completion scoring
+- Sponsor organisations, memberships, and verification workflow
+- Pitch drafts, immutable submissions, and status workflow
+- Secure MinIO uploads with malware scanning abstraction
+- Reviewer assignments, conflict declarations, and structured reviews
+- Admin pitch triage and sponsor verification
+- Verified-sponsor discovery of approved pitches
+- State-scoped admin isolation preserved from Stage 2
+
+See [docs/API.md](./docs/API.md) for Stage 3 endpoints.
+
+## Deferred (Stage 4+)
 
 - Pitch submission and review workflows
 - Sponsor discovery and matching

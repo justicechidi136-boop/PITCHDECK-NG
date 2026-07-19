@@ -58,3 +58,197 @@ When `ENABLE_TEST_ENDPOINTS=true` and `EMAIL_PROVIDER=capture`:
 | ------ | ---- | ----------- |
 | GET | `/test/emails?to=` | List captured emails for E2E |
 | DELETE | `/test/emails` | Clear captured mailbox |
+
+## Stage 3 — Innovator profiles
+
+Requires INNOVATOR role. All mutating routes require CSRF.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/innovator/profile` | Get current profile (null if unset) |
+| PUT/PATCH | `/innovator/profile` | Create or update profile |
+| GET | `/innovator/profile/completeness` | Server-side completion scoring |
+
+## Stage 3 — Pitches
+
+Requires INNOVATOR role and pitch ownership.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/pitches` | List own pitches |
+| POST | `/pitches` | Create draft |
+| GET | `/pitches/:pitchId` | Get pitch (owner only) |
+| PATCH | `/pitches/:pitchId` | Update draft (optimistic lock) |
+| DELETE | `/pitches/:pitchId` | Delete unsaved draft |
+| GET | `/pitches/:pitchId/completeness` | Submission readiness |
+| POST | `/pitches/:pitchId/submit` | Submit for review |
+| POST | `/pitches/:pitchId/withdraw` | Withdraw submission |
+| POST | `/pitches/:pitchId/resubmit` | Resubmit after changes requested |
+| GET | `/pitches/:pitchId/submissions` | List submission versions |
+| GET | `/pitches/:pitchId/submissions/:version` | Get submission snapshot |
+
+## Stage 3 — Sponsor organisations
+
+Requires SPONSOR role and organisation membership.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/sponsor-organizations` | List member organisations |
+| POST | `/sponsor-organizations` | Create organisation (caller becomes owner) |
+| GET | `/sponsor-organizations/:id` | Get organisation |
+| PATCH | `/sponsor-organizations/:id` | Update draft organisation |
+| GET | `/sponsor-organizations/:id/members` | List members |
+| POST | `/sponsor-organizations/:id/members` | Add member (admin+) |
+| DELETE | `/sponsor-organizations/:id/members/:membershipId` | Remove member |
+| GET | `/sponsor-organizations/:id/verification` | Verification status/history |
+| POST | `/sponsor-organizations/:id/verification/submit` | Submit for admin review |
+
+## Stage 3 — Files
+
+Authenticated upload flow via MinIO presigned URLs.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| POST | `/files/upload-intents` | Create upload intent |
+| POST | `/files/:fileId/complete` | Finalise upload and scan |
+| GET | `/files/:fileId` | File metadata |
+| GET | `/files/:fileId/download-url` | Signed download URL |
+| DELETE | `/files/:fileId` | Delete owned file |
+
+## Stage 3 — Discovery
+
+Requires verified sponsor organisation membership.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/discovery/pitches` | Search approved pitches |
+| GET | `/discovery/pitches/:pitchId` | Approved pitch detail |
+
+## Stage 3 — Reviewer
+
+Requires REVIEWER role.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/reviewer/assignments` | List assignments |
+| GET | `/reviewer/assignments/:id` | Assignment detail + snapshot |
+| POST | `/reviewer/assignments/:id/accept` | Accept assignment |
+| POST | `/reviewer/assignments/:id/decline` | Decline assignment |
+| POST | `/reviewer/assignments/:id/conflict` | Declare conflict status |
+| POST | `/reviewer/assignments/:id/review` | Submit structured review |
+
+## Stage 3 — Admin pitches & sponsor verification
+
+State-scoped admin access preserved from Stage 2.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/admin/pitches` | List pitches (filtered) |
+| GET | `/admin/pitches/:pitchId` | Pitch detail + workflow |
+| POST | `/admin/pitches/:pitchId/start-review` | Move to under review |
+| POST | `/admin/pitches/:pitchId/reviewers` | Assign reviewer |
+| DELETE | `/admin/pitches/:pitchId/reviewers/:assignmentId` | Revoke assignment |
+| POST | `/admin/pitches/:pitchId/request-changes` | Request changes |
+| POST | `/admin/pitches/:pitchId/approve` | Approve pitch |
+| POST | `/admin/pitches/:pitchId/reject` | Reject pitch |
+| POST | `/admin/pitches/:pitchId/reopen` | Reopen for review |
+| POST | `/admin/pitches/:pitchId/suspend-discovery` | Suspend from discovery |
+| GET | `/admin/sponsor-organizations` | List organisations |
+| GET | `/admin/sponsor-organizations/:id` | Organisation detail |
+| POST | `/admin/sponsor-organizations/:id/start-review` | Start verification review |
+| POST | `/admin/sponsor-organizations/:id/request-changes` | Request changes |
+| POST | `/admin/sponsor-organizations/:id/verify` | Verify organisation |
+| POST | `/admin/sponsor-organizations/:id/reject` | Reject verification |
+| POST | `/admin/sponsor-organizations/:id/suspend` | Suspend organisation |
+
+## Stage 3 — Innovator profiles and pitches
+
+Requires authenticated INNOVATOR role. Mutating requests need CSRF + Origin.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/innovator/profile` | Get innovator profile |
+| PUT/PATCH | `/innovator/profile` | Create or update profile |
+| GET | `/innovator/profile/completeness` | Profile completion scoring |
+| GET | `/pitches` | List own pitches |
+| POST | `/pitches` | Create draft pitch |
+| GET | `/pitches/:pitchId` | Get pitch (owner only) |
+| PATCH | `/pitches/:pitchId` | Update draft (optimistic lock) |
+| DELETE | `/pitches/:pitchId` | Delete unsaved draft |
+| GET | `/pitches/:pitchId/completeness` | Pitch readiness check |
+| POST | `/pitches/:pitchId/submit` | Submit for review |
+| POST | `/pitches/:pitchId/withdraw` | Withdraw submission |
+| POST | `/pitches/:pitchId/resubmit` | Resubmit after changes requested |
+| GET | `/pitches/:pitchId/submissions` | List submission versions |
+| GET | `/pitches/:pitchId/submissions/:version` | Get submission snapshot |
+
+## Stage 3 — Sponsor organisations
+
+Requires authenticated SPONSOR role.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/sponsor-organizations` | List member organisations |
+| POST | `/sponsor-organizations` | Create organisation (caller becomes owner) |
+| GET | `/sponsor-organizations/:id` | Get organisation |
+| PATCH | `/sponsor-organizations/:id` | Update draft organisation |
+| GET | `/sponsor-organizations/:id/members` | List members |
+| POST | `/sponsor-organizations/:id/members` | Add member (admin+) |
+| DELETE | `/sponsor-organizations/:id/members/:membershipId` | Remove member |
+| GET | `/sponsor-organizations/:id/verification` | Verification status/history |
+| POST | `/sponsor-organizations/:id/verification/submit` | Submit for verification |
+
+## Stage 3 — Files and discovery
+
+| Method | Path | Auth | Description |
+| ------ | ---- | ---- | ----------- |
+| POST | `/files/upload-intents` | Required | Create presigned upload intent |
+| POST | `/files/:fileId/complete` | Required | Finalise upload and scan |
+| GET | `/files/:fileId` | Required | File metadata |
+| GET | `/files/:fileId/download-url` | Required | Signed download URL |
+| DELETE | `/files/:fileId` | Required | Delete owned file |
+| GET | `/discovery/pitches` | Verified sponsor | Browse approved pitches |
+| GET | `/discovery/pitches/:pitchId` | Verified sponsor | Pitch detail |
+
+## Stage 3 — Reviewer workflow
+
+Requires REVIEWER role.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/reviewer/assignments` | List assignments |
+| GET | `/reviewer/assignments/:id` | Assignment + submission snapshot |
+| POST | `/reviewer/assignments/:id/accept` | Accept assignment |
+| POST | `/reviewer/assignments/:id/decline` | Decline assignment |
+| POST | `/reviewer/assignments/:id/conflict` | Declare conflict of interest |
+| POST | `/reviewer/assignments/:id/review` | Submit structured review |
+
+## Stage 3 — Admin moderation
+
+State-scoped admin access preserved from Stage 2.
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/admin/pitches` | List pitches (filter by status/state) |
+| GET | `/admin/pitches/:pitchId` | Pitch detail + workflow |
+| POST | `/admin/pitches/:pitchId/start-review` | Move to under review |
+| POST | `/admin/pitches/:pitchId/reviewers` | Assign reviewer |
+| DELETE | `/admin/pitches/:pitchId/reviewers/:assignmentId` | Revoke assignment |
+| POST | `/admin/pitches/:pitchId/request-changes` | Request changes |
+| POST | `/admin/pitches/:pitchId/approve` | Approve pitch |
+| POST | `/admin/pitches/:pitchId/reject` | Reject pitch |
+| POST | `/admin/pitches/:pitchId/reopen` | Reopen for review |
+| POST | `/admin/pitches/:pitchId/suspend-discovery` | Suspend from discovery |
+| GET | `/admin/sponsor-organizations` | List sponsor orgs |
+| GET | `/admin/sponsor-organizations/:id` | Organisation detail |
+| POST | `/admin/sponsor-organizations/:id/start-review` | Start verification review |
+| POST | `/admin/sponsor-organizations/:id/request-changes` | Request changes |
+| POST | `/admin/sponsor-organizations/:id/verify` | Verify organisation |
+| POST | `/admin/sponsor-organizations/:id/reject` | Reject verification |
+| POST | `/admin/sponsor-organizations/:id/suspend` | Suspend organisation |
+
+## Object storage and scanning
+
+- Uploads use MinIO/S3 presigned URLs (`OBJECT_STORAGE_*` env vars)
+- Malware scanning via `FILE_SCAN_MODE`: `mock` (dev), `clamav` (production), `disabled`
+- ClamAV runs in Docker Compose on port 3310 (`CLAMAV_HOST`, `CLAMAV_PORT`)

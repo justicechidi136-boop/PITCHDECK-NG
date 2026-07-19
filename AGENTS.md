@@ -8,7 +8,7 @@ Build a national platform connecting Nigerian innovators with sponsors across go
 
 ## Current milestone
 
-**Authentication and scoped RBAC.** Secure email/password auth, session management, state-scoped admin boundaries, and audit logging are implemented. Product features beyond auth/admin shells remain deferred unless explicitly requested.
+**Profiles, sponsor verification, and pitch workflow (Stage 3).** Builds on Stage 2 auth/RBAC with innovator profiles, sponsor organisations, secure file uploads, pitch submissions, review assignments, and sponsor discovery.
 
 ## Repository map
 
