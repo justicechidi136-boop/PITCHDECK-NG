@@ -117,7 +117,7 @@ jobs:
 
       - name: Initialise object storage bucket
         run: |
-          docker run --rm --network host minio/mc:latest sh -c \
+          docker run --rm --network host --entrypoint /bin/sh minio/mc:latest -c \
             "mc alias set local http://127.0.0.1:9000 pitchdeck_minio pitchdeck_minio_dev && mc mb local/pitchdeck-uploads --ignore-existing"
 
       - name: Lint
@@ -238,7 +238,7 @@ jobs:
 
       - name: Initialise object storage bucket
         run: |
-          docker run --rm --network host minio/mc:latest sh -c \
+          docker run --rm --network host --entrypoint /bin/sh minio/mc:latest -c \
             "mc alias set local http://127.0.0.1:9000 pitchdeck_minio pitchdeck_minio_dev && mc mb local/pitchdeck-uploads --ignore-existing"
 
       - name: Build applications
