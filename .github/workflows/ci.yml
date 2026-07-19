@@ -51,6 +51,16 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      clamav:
+        image: clamav/clamav:1.4
+        ports:
+          - 3310:3310
+        options: >-
+          --health-cmd "/usr/local/bin/clamdcheck.sh"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 120s
 
     env:
       DATABASE_URL: postgresql://pitchdeck:pitchdeck_dev@localhost:5432/pitchdeck?schema=public
@@ -72,7 +82,10 @@ jobs:
       OBJECT_STORAGE_ACCESS_KEY: pitchdeck_minio
       OBJECT_STORAGE_SECRET_KEY: pitchdeck_minio_dev
       OBJECT_STORAGE_BUCKET: pitchdeck-uploads
-      FILE_SCAN_MODE: mock
+      FILE_SCAN_MODE: clamav
+      CLAMAV_HOST: localhost
+      CLAMAV_PORT: "3310"
+      FILE_SCAN_TIMEOUT_SECONDS: "120"
 
     steps:
       - name: Checkout
@@ -174,6 +187,16 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      clamav:
+        image: clamav/clamav:1.4
+        ports:
+          - 3310:3310
+        options: >-
+          --health-cmd "/usr/local/bin/clamdcheck.sh"
+          --health-interval 30s
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 120s
 
     env:
       DATABASE_URL: postgresql://pitchdeck:pitchdeck_dev@localhost:5432/pitchdeck?schema=public
@@ -195,7 +218,10 @@ jobs:
       OBJECT_STORAGE_ACCESS_KEY: pitchdeck_minio
       OBJECT_STORAGE_SECRET_KEY: pitchdeck_minio_dev
       OBJECT_STORAGE_BUCKET: pitchdeck-uploads
-      FILE_SCAN_MODE: mock
+      FILE_SCAN_MODE: clamav
+      CLAMAV_HOST: localhost
+      CLAMAV_PORT: "3310"
+      FILE_SCAN_TIMEOUT_SECONDS: "120"
       ENABLE_TEST_ENDPOINTS: "true"
       BOOTSTRAP_SUPER_ADMIN_EMAIL: superadmin@e2e.pitchdeck.test
       BOOTSTRAP_SUPER_ADMIN_PASSWORD: SuperAdminPass123!

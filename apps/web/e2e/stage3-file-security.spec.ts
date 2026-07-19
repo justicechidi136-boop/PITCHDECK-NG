@@ -2,14 +2,69 @@ import { test, expect } from "@playwright/test";
 import {
   ApiTestClient,
   clearCapturedEmails,
+  EICAR_TEST_BYTES,
+  MINIMAL_PDF_BYTES,
+  uploadFileViaIntent,
   uniqueEmail,
 } from "@pitchdeck/testing/e2e";
 import { prisma } from "@pitchdeck/database";
 
 test.describe.configure({ mode: "serial" });
+test.setTimeout(120_000);
 
 test.beforeEach(async () => {
   await clearCapturedEmails();
+});
+
+test("0. clean PDF upload finalizes with ClamAV scan", async () => {
+  const email = uniqueEmail("clean-upload");
+  const client = new ApiTestClient();
+  await client.registerAndLoginInnovator(email);
+  const pitch = await client.request("/pitches", { method: "POST", body: { title: "Clean Upload" } });
+  const pitchId = (pitch.data as { id: string }).id;
+  const file = await uploadFileViaIntent(client, {
+    purpose: "PITCH_DECK",
+    originalFilename: "deck.pdf",
+    declaredMimeType: "application/pdf",
+    bytes: MINIMAL_PDF_BYTES,
+    pitchId,
+  });
+  expect(file.uploadStatus).toBe("AVAILABLE");
+  expect(file.scanStatus).toBe("CLEAN");
+  const download = await client.request(`/files/${file.id}/download-url`);
+  expect((download.data as { expiresIn: number }).expiresIn).toBeLessThanOrEqual(900);
+});
+
+test("0b. EICAR test file rejected by ClamAV", async () => {
+  const email = uniqueEmail("eicar");
+  const client = new ApiTestClient();
+  await client.registerAndLoginInnovator(email);
+  const pitch = await client.request("/pitches", { method: "POST", body: { title: "EICAR Test" } });
+  const pitchId = (pitch.data as { id: string }).id;
+  const intent = await client.request("/files/upload-intents", {
+    method: "POST",
+    body: {
+      purpose: "PITCH_DECK",
+      originalFilename: "eicar.pdf",
+      declaredMimeType: "application/pdf",
+      sizeBytes: EICAR_TEST_BYTES.length,
+      pitchId,
+    },
+  });
+  const intentData = intent.data as { fileId: string; uploadUrl: string };
+  const uploadResponse = await fetch(intentData.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": "application/pdf" },
+    body: new Uint8Array(EICAR_TEST_BYTES),
+  });
+  expect(uploadResponse.ok).toBe(true);
+  await expect(
+    client.request(`/files/${intentData.fileId}/complete`, { method: "POST" }),
+  ).rejects.toThrow();
+  const asset = await prisma.fileAsset.findUniqueOrThrow({ where: { id: intentData.fileId } });
+  expect(asset.uploadStatus).toBe("REJECTED");
+  expect(asset.scanStatus).toBe("INFECTED");
+  await expect(client.request(`/files/${intentData.fileId}/download-url`)).rejects.toThrow();
 });
 
 test("1. unauthorised user cannot obtain download URL", async () => {

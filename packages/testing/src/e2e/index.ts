@@ -20,3 +20,14 @@ export {
   SUPER_ADMIN_EMAIL,
   SUPER_ADMIN_PASSWORD,
 } from "./fixtures.js";
+
+export {
+  EICAR_TEST_BYTES,
+  MINIMAL_PDF_BYTES,
+  uploadFileViaIntent,
+  expectUploadRejected,
+  type UploadFileInput,
+  type UploadedFileResult,
+} from "./storage.js";
+
+export { stage3StorageEnv } from "./stage3-env.js";
