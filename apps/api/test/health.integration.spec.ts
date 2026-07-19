@@ -1,4 +1,4 @@
-import { Test, TestingModule } from "@nestjs/testing";
+﻿import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
 import { AppModule } from "../src/app.module";
@@ -45,6 +45,12 @@ describe("Health endpoints (integration)", () => {
     await app.close();
   });
 
+  beforeEach(() => {
+    mockPrisma.$queryRaw.mockResolvedValue([{ "?column?": 1 }]);
+    mockRedis.status = "ready";
+    mockRedis.ping.mockResolvedValue("PONG");
+  });
+
   it("GET /v1/health returns success envelope", async () => {
     const response = await request(app.getHttpServer()).get("/v1/health").expect(200);
 
@@ -61,12 +67,48 @@ describe("Health endpoints (integration)", () => {
     expect(response.body.data.alive).toBe(true);
   });
 
-  it("GET /v1/health/ready checks dependencies", async () => {
+  it("GET /v1/health/ready returns ready when dependencies are up", async () => {
     const response = await request(app.getHttpServer())
       .get("/v1/health/ready")
       .expect(200);
 
+    expect(response.body.success).toBe(true);
     expect(response.body.data.status).toBe("ready");
     expect(response.body.data.checks).toHaveLength(2);
+    expect(response.body.data.checks.every((check: { status: string }) => check.status === "up")).toBe(
+      true,
+    );
+  });
+
+  it("GET /v1/health/ready returns not_ready when Redis is unavailable", async () => {
+    mockRedis.ping.mockRejectedValueOnce(new Error("Redis unavailable"));
+
+    const response = await request(app.getHttpServer())
+      .get("/v1/health/ready")
+      .expect(503);
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.status).toBe("not_ready");
+    expect(response.body.data.checks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "redis", status: "down" }),
+      ]),
+    );
+  });
+
+  it("GET /v1/health/ready returns not_ready when PostgreSQL is unavailable", async () => {
+    mockPrisma.$queryRaw.mockRejectedValueOnce(new Error("PostgreSQL unavailable"));
+
+    const response = await request(app.getHttpServer())
+      .get("/v1/health/ready")
+      .expect(503);
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.status).toBe("not_ready");
+    expect(response.body.data.checks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "postgresql", status: "down" }),
+      ]),
+    );
   });
 });

@@ -1,6 +1,7 @@
-import { Controller, Get, Inject } from "@nestjs/common";
+﻿import { Controller, Get, HttpStatus, Inject, Res } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
+import type { Response } from "express";
 import type Redis from "ioredis";
 import type { PrismaClient } from "@pitchdeck/database";
 import type { EnvConfig } from "../config/env.schema";
@@ -39,13 +40,17 @@ export class HealthController {
 
   @Get("ready")
   @ApiOperation({ summary: "Readiness probe with dependency checks" })
-  async getReadiness() {
+  async getReadiness(@Res({ passthrough: true }) response: Response) {
     const checks = await Promise.all([
       this.checkPostgres(),
       this.checkRedis(),
     ]);
 
     const allUp = checks.every((check) => check.status === "up");
+
+    if (!allUp) {
+      response.status(HttpStatus.SERVICE_UNAVAILABLE);
+    }
 
     return {
       status: allUp ? ("ready" as const) : ("not_ready" as const),

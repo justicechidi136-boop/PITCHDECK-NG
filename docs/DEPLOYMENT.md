@@ -1,4 +1,4 @@
-# Deployment
+﻿# Deployment
 
 ## Current status
 
@@ -49,7 +49,7 @@ Run migrations before starting the API in any new environment.
 
 1. Managed PostgreSQL (e.g. Neon, RDS, Cloud SQL)
 2. Managed Redis (e.g. Upstash, ElastiCache)
-3. Object storage (S3-compatible — MinIO for local only)
+3. Object storage (S3-compatible â€” MinIO for local only)
 4. API deployed as container or serverless function
 5. Next.js apps deployed to Vercel or equivalent
 6. Nginx or cloud load balancer terminating TLS
@@ -60,11 +60,12 @@ See `infrastructure/nginx/default.conf` for a starter reverse proxy layout.
 
 Configure load balancers to use:
 
-- Liveness: `GET /v1/health/live`
-- Readiness: `GET /v1/health/ready`
+- Liveness: `GET /v1/health/live` (always HTTP 200 while the process is running)
+- Readiness: `GET /v1/health/ready` (HTTP 200 with `status: ready` when PostgreSQL and Redis are reachable; HTTP 503 with `status: not_ready` otherwise)
 
 ## Rollback strategy
 
 - Keep previous API container/image available
 - Run down migrations only when explicitly approved
 - Promote previous Next.js deployment via hosting provider rollback
+
