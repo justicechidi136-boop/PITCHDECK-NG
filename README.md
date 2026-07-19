@@ -173,7 +173,7 @@ Install Chromium once:
 pnpm exec playwright install chromium
 ```
 
-Ensure Docker, migrations, seed, and bootstrap are complete, then:
+Ensure Docker (PostgreSQL, Redis, MinIO, ClamAV), migrations, seed, and bootstrap are complete, then:
 
 ```powershell
 pnpm.cmd --filter @pitchdeck/web test:e2e
@@ -205,8 +205,10 @@ Implemented in this milestone:
 
 ### File uploads (`apps/api`)
 
-- Secure MinIO/S3 uploads with presigned URLs
-- Malware scanning abstraction before attachment to pitches or profiles
+- Secure MinIO/S3 uploads with presigned URLs (intent → PUT → finalize)
+- ClamAV malware scanning via `FILE_SCAN_MODE=clamav` before files become `AVAILABLE`
+- Fail-closed: scanner unavailable, timeout, or malware detection rejects the file
+- MIME allowlists, size limits, and purpose-based access controls
 
 ### Sponsor discovery (`apps/web`, `apps/api`)
 

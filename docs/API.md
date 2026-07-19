@@ -250,5 +250,9 @@ State-scoped admin access preserved from Stage 2.
 ## Object storage and scanning
 
 - Uploads use MinIO/S3 presigned URLs (`OBJECT_STORAGE_*` env vars)
-- Malware scanning via `FILE_SCAN_MODE`: `mock` (dev), `clamav` (production), `disabled`
+- Flow: upload intent → client PUT → complete → HEAD validation → ClamAV INSTREAM scan → `AVAILABLE`
+- `FILE_SCAN_MODE`: `mock` (local dev only), `clamav` (production and acceptance), `disabled` (fail-closed)
 - ClamAV runs in Docker Compose on port 3310 (`CLAMAV_HOST`, `CLAMAV_PORT`)
+- Upload intent response: `{ fileId, uploadUrl, expiresAt, maxBytes }` — do not log signed URLs
+- Complete response: `{ id, uploadStatus, scanStatus, ... }` — `AVAILABLE` + `CLEAN` required for download
+- Download URL response: `{ url, expiresIn }` — short-lived signed GET

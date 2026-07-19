@@ -15,6 +15,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs on pull requests and p
 5. Unit tests
 6. API integration tests
 7. Production builds
+8. Playwright E2E (public web + admin web) with MinIO, ClamAV, and `FILE_SCAN_MODE=clamav`
 
 ## Build artifacts
 
@@ -33,7 +34,12 @@ Copy `.env.example` to `.env` for local development. Production environments req
 - `REDIS_URL`
 - `CORS_ORIGINS`
 - `NODE_ENV=production`
-- `LOG_LEVEL` (recommended: `info` or `warn`)
+- `OBJECT_STORAGE_*` credentials and bucket name
+- `FILE_SCAN_MODE=clamav` (required in production)
+- `CLAMAV_HOST` and `CLAMAV_PORT` pointing to a reachable ClamAV daemon
+- `AUTH_COOKIE_SECURE=true`
+- `EMAIL_PROVIDER=smtp` with SMTP credentials
+- `ENABLE_TEST_ENDPOINTS=false`
 
 ## Database migrations
 
@@ -49,10 +55,11 @@ Run migrations before starting the API in any new environment.
 
 1. Managed PostgreSQL (e.g. Neon, RDS, Cloud SQL)
 2. Managed Redis (e.g. Upstash, ElastiCache)
-3. Object storage (S3-compatible â€” MinIO for local only)
-4. API deployed as container or serverless function
-5. Next.js apps deployed to Vercel or equivalent
-6. Nginx or cloud load balancer terminating TLS
+3. Object storage (S3-compatible — MinIO for local development only)
+4. ClamAV daemon reachable from the API (`FILE_SCAN_MODE=clamav`)
+5. API deployed as container or serverless function
+6. Next.js apps deployed to Vercel or equivalent
+7. Nginx or cloud load balancer terminating TLS
 
 See `infrastructure/nginx/default.conf` for a starter reverse proxy layout.
 
