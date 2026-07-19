@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@pitchdeck/config": "workspace:*",
+    "@pitchdeck/testing": "workspace:*",
     "@playwright/test": "^1.52.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
