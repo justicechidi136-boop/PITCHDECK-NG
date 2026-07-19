@@ -40,7 +40,12 @@ export const userProfileSchema = z.object({
   email: emailSchema,
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
+  accountStatus: z.string(),
   roles: z.array(roleTypeSchema),
 });
 
 export type UserProfile = z.infer<typeof userProfileSchema>;
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}

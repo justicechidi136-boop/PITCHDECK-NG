@@ -32,6 +32,7 @@ pnpm-debug.log*
 coverage/
 playwright-report/
 test-results/
+apps/admin-web/e2e/.admin-e2e-fixtures.json
 
 # Prisma
 packages/database/prisma/*.db

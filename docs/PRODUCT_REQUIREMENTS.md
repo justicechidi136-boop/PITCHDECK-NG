@@ -1,78 +1,72 @@
-# Product Requirements — Platform Foundation
+# Product Requirements — Stage 2 (Authentication and RBAC)
 
 ## Vision
 
 PitchDeck Nigeria is a national innovation bridge connecting creators with sponsors, investors, institutions, and diaspora partners.
 
-## Target users
-
-- Innovators, startups, students, researchers, inventors, community organisations
-- Government agencies and public institutions
-- Corporate organisations and enterprises
-- Angel investors, VC firms, philanthropists
-- NGOs, universities, incubators
-- Nigerian diaspora sponsors
-
-## Foundation scope (current release)
+## Stage 2 scope (current release)
 
 ### Public web (`apps/web`)
 
-- Responsive landing page with Nigerian innovation identity
-- Primary CTAs: Submit Your Idea, Discover Innovations
-- Sector preview, how-it-works, sponsor CTA
-- Auth route placeholders (no fake login)
+- Registration for INNOVATOR and SPONSOR roles with Nigerian state and terms acceptance
+- Email verification before sign-in
+- Login/logout with HttpOnly session cookies
+- Password forgot/reset (non-enumerating)
+- Account profile and active session management
 - Accessible loading, error, and not-found pages
 - Light/dark themes via central design tokens
 
 ### Admin web (`apps/admin-web`)
 
-- Secure-layout placeholder under `(protected)` route group
-- Sidebar navigation for operational modules
-- Dashboard overview placeholders
-- Clear indication that auth integration is pending
+- Admin login for SUPER_ADMIN, NATIONAL_ADMIN, and STATE_ADMIN
+- Protected dashboard and user management routes
+- Role assignment UI (STATE_ADMIN requires state)
+- State-scoped user visibility for state admins
+- Access denied handling for non-admin authenticated users
 
 ### API (`apps/api`)
 
-- Global `/v1` prefix
-- Structured config and env validation
-- Global exception handling and request IDs
-- Structured logging (Pino)
-- Swagger in non-production
-- Health, liveness, and readiness endpoints
-- Readiness checks for PostgreSQL and Redis
+- Secure email/password authentication under `/v1/auth/*`
+- CSRF and origin validation on mutating browser requests
+- Refresh token rotation with reuse detection
+- Redis-backed rate limits and audit logging
+- Admin user/role management under `/v1/admin/users/*`
+- Super-admin bootstrap via env vars (`pnpm admin:bootstrap`)
 
 ### Data (`packages/database`)
 
-Core reference models only:
+Auth and reference models:
 
-- User, Role, UserRole
-- State (37 entries: 36 states + FCT)
-- Sector (16 innovation sectors)
-- AuditLog
+- User (with state, terms acceptance, account status, verification timestamp)
+- Role, RoleAssignment (global/country/state scopes)
+- AuthSession, EmailVerificationToken, PasswordResetToken
+- State (37 entries), Sector (16), AuditLog
 
-Seed script must be idempotent.
+Seed script is idempotent. Super admin is never seeded.
 
-## Explicitly out of scope
+## Explicitly deferred (Stage 3+)
 
-- Authentication providers and session management
 - Pitch submission, review, and scoring
-- Sponsorship matching and funding disbursement
+- Sponsor discovery and matching
+- OAuth/OIDC social login, MFA, phone OTP
 - Payments and billing
 - Messaging and notifications
 - Challenges and competitions
+- File uploads
 
 ## Non-functional requirements
 
-- Node.js 22 LTS
-- TypeScript strict mode
+- Node.js 22 LTS, TypeScript strict mode
 - No secrets in repository
-- CI on pull requests: install, generate, lint, typecheck, test, build
+- CI: lint, typecheck, unit tests, API integration tests, build, Playwright E2E
 - Accessible UI components with semantic markup
+- E2E uses isolated users and email capture — no fake browser tokens
 
 ## Success criteria
 
-1. Monorepo installs and builds on a clean machine
-2. Docker services start with health checks
-3. API readiness reflects PostgreSQL/Redis availability
-4. Seed data loads consistently
-5. Web and admin shells render with smoke tests passing
+1. Public registration → verification → login flow works end-to-end
+2. Unverified and suspended accounts are blocked at login
+3. Admin RBAC enforces role and state boundaries server-side
+4. Super-admin bootstrap is idempotent and env-driven
+5. Playwright E2E covers public auth and admin isolation scenarios
+6. CI passes all quality gates including E2E

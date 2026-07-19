@@ -2,12 +2,21 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": "env.validation.spec.ts$",
+  "testRegex": "\\.(unit|validation)\\.spec\\.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "commonjs",
+          "esModuleInterop": true
+        }
+      }
+    ]
   },
   "moduleNameMapper": {
     "^@pitchdeck/database$": "<rootDir>/../../../packages/database/src/index.ts",
-    "^@pitchdeck/contracts$": "<rootDir>/../../../packages/contracts/src/index.ts"
+    "^@pitchdeck/contracts$": "<rootDir>/../../../packages/contracts/src/index.ts",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
   }
 }

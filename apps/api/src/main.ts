@@ -4,6 +4,7 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { Logger } from "nestjs-pino";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
 import type { EnvConfig } from "./config/env.schema";
 
@@ -14,6 +15,7 @@ async function bootstrap(): Promise<void> {
 
   app.useLogger(logger);
   app.use(helmet());
+  app.use(cookieParser());
 
   const corsOrigins = configService
     .get("CORS_ORIGINS", { infer: true })

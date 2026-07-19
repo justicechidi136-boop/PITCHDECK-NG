@@ -19,13 +19,16 @@
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx prisma/seed.ts",
+    "admin:bootstrap": "tsx scripts/admin-bootstrap.ts",
     "lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/*.test.ts\" --max-warnings 0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm test:unit",
     "test:unit": "jest --passWithNoTests"
   },
   "dependencies": {
-    "@prisma/client": "^6.8.2"
+    "@pitchdeck/contracts": "workspace:^",
+    "@prisma/client": "^6.8.2",
+    "argon2": "^0.45.0"
   },
   "devDependencies": {
     "@pitchdeck/config": "workspace:*",

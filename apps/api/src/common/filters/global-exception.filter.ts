@@ -45,11 +45,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
               ? body.message.join(", ")
               : message;
         code =
-          typeof body.error === "string"
-            ? body.error
-            : typeof HttpStatus[status] === "string"
-              ? HttpStatus[status]
-              : code;
+          typeof body.code === "string"
+            ? body.code
+            : typeof body.error === "string"
+              ? body.error
+              : typeof HttpStatus[status] === "string"
+                ? HttpStatus[status]
+                : code;
       }
     } else if (exception instanceof Error) {
       message = isProduction ? message : exception.message;

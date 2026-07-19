@@ -7,10 +7,12 @@ import type { PrismaClient } from "@pitchdeck/database";
 import type { EnvConfig } from "../config/env.schema";
 import { PRISMA_CLIENT } from "../database/database.module";
 import { REDIS_CLIENT } from "../redis/redis.module";
+import { Public } from "../auth/decorators/public.decorator";
 
 const startTime = Date.now();
 
 @ApiTags("health")
+@Public()
 @Controller("health")
 export class HealthController {
   constructor(
