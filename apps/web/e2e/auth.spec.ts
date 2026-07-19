@@ -80,7 +80,7 @@ test("blocks unverified login and allows verified login with HttpOnly cookies", 
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(TEST_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toContainText(/verify your email/i);
+  await expect(page.locator("form").getByRole("alert")).toContainText(/verify your email/i);
 
   const captured = await waitForCapturedEmail(email);
   const token = extractQueryParam(captured.actionUrl, "token");
@@ -102,7 +102,7 @@ test("shows generic error for invalid credentials", async ({ page }) => {
   await page.getByLabel("Email").fill("nobody@e2e.pitchdeck.test");
   await page.getByLabel("Password").fill("WrongPassword999!");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toContainText(/invalid email or password/i);
+  await expect(page.locator("form").getByRole("alert")).toContainText(/invalid email or password/i);
 });
 
 test("lists sessions, logs out, and redirects protected account routes", async ({ page }) => {
@@ -163,7 +163,7 @@ test("password reset avoids enumeration and rotates credentials", async ({ page 
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(TEST_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toContainText(/invalid email or password/i);
+  await expect(page.locator("form").getByRole("alert")).toContainText(/invalid email or password/i);
 
   await page.getByLabel("Password").fill(newPassword);
   await page.getByRole("button", { name: "Sign in" }).click();

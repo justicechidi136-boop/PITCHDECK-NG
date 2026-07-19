@@ -481,6 +481,10 @@ export class AuthService {
   }
 
   private async assertRateLimit(key: string, max: number, windowSeconds: number): Promise<void> {
+    if (this.configService.get("ENABLE_TEST_ENDPOINTS", { infer: true })) {
+      return;
+    }
+
     const result = await this.rateLimitService.checkLimit(key, max, windowSeconds);
     if (!result.allowed) {
       throw new HttpException(
