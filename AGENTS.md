@@ -60,7 +60,11 @@ pnpm typecheck
 pnpm test:unit
 pnpm --filter @pitchdeck/api test:integration
 pnpm build
+pnpm --filter @pitchdeck/web test:e2e
+pnpm --filter @pitchdeck/admin-web test:e2e
 ```
+
+E2E uses Playwright with Chromium, email capture (`EMAIL_PROVIDER=capture`, `ENABLE_TEST_ENDPOINTS=true`), and isolated fixture users — never browser localStorage tokens or hard-coded roles.
 
 ## Next recommended milestones
 
