@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pitchdeck-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pitchdeck}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pitchdeck_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-pitchdeck}
+    ports:
+      - "${POSTGRES_HOST_PORT:-15432}:5432"
+    volumes:
+      - pitchdeck_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pitchdeck} -d ${POSTGRES_DB:-pitchdeck}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: pitchdeck-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-pitchdeck_redis_dev}
+    ports:
+      - "${REDIS_HOST_PORT:-16379}:6379"
+    volumes:
+      - pitchdeck_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-pitchdeck_redis_dev}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: pitchdeck-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-pitchdeck_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-pitchdeck_minio_dev}
+    ports:
+      - "${MINIO_API_HOST_PORT:-19000}:9000"
+      - "${MINIO_CONSOLE_HOST_PORT:-19001}:9001"
+    volumes:
+      - pitchdeck_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: pitchdeck-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-pitchdeck_minio} ${MINIO_ROOT_PASSWORD:-pitchdeck_minio_dev} &&
+      mc mb --ignore-existing local/${MINIO_BUCKET:-pitchdeck-uploads} &&
+      mc anonymous set none local/${MINIO_BUCKET:-pitchdeck-uploads} &&
+      echo 'MinIO bucket initialized'
+      "
+    restart: "no"
+
+volumes:
+  pitchdeck_postgres_data:
+  pitchdeck_redis_data:
+  pitchdeck_minio_data:
+

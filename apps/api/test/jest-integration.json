@@ -1,0 +1,23 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "setupFiles": ["<rootDir>/setup-integration.ts"],
+  "testRegex": "health.integration.spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "commonjs",
+          "esModuleInterop": true
+        }
+      }
+    ]
+  },
+  "moduleNameMapper": {
+    "^@pitchdeck/database$": "<rootDir>/../../../packages/database/src/index.ts",
+    "^@pitchdeck/contracts$": "<rootDir>/../../../packages/contracts/src/index.ts",
+    "^(\\.{1,2}/.*)\\.js$": "$1"
+  }
+}

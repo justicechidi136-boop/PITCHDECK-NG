@@ -1,0 +1,10 @@
+{
+  "extends": "@pitchdeck/config/typescript/react-library",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "noEmit": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
