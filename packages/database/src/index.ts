@@ -18,5 +18,20 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export { PrismaClient };
-export type { User, Role, UserRole, State, Sector, AuditLog } from "@prisma/client";
-export { RoleType, AuditAction } from "@prisma/client";
+export type {
+  User,
+  Role,
+  RoleAssignment,
+  State,
+  Sector,
+  AuditLog,
+  AuthSession,
+  EmailVerificationToken,
+  PasswordResetToken,
+} from "@prisma/client";
+export {
+  RoleType,
+  AuditAction,
+  AccountStatus,
+  ScopeType,
+} from "@prisma/client";

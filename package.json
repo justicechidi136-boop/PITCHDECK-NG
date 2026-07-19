@@ -22,6 +22,7 @@
     "db:migrate": "dotenv -e .env -- pnpm --filter @pitchdeck/database migrate:dev",
     "db:migrate:deploy": "dotenv -e .env -- pnpm --filter @pitchdeck/database migrate:deploy",
     "db:seed": "dotenv -e .env -- pnpm --filter @pitchdeck/database seed",
+    "admin:bootstrap": "dotenv -e .env -- pnpm --filter @pitchdeck/database admin:bootstrap",
     "docker:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d",
     "docker:down": "docker compose -f infrastructure/docker/docker-compose.yml down",
     "clean": "turbo run clean && rimraf node_modules"

@@ -8,16 +8,16 @@ Build a national platform connecting Nigerian innovators with sponsors across go
 
 ## Current milestone
 
-**Platform foundation only.** Do not implement product features beyond shells and infrastructure unless explicitly requested.
+**Authentication and scoped RBAC.** Secure email/password auth, session management, state-scoped admin boundaries, and audit logging are implemented. Product features beyond auth/admin shells remain deferred unless explicitly requested.
 
 ## Repository map
 
 | Path | Purpose |
 | ---- | ------- |
-| `apps/web` | Public-facing Next.js app |
-| `apps/admin-web` | Admin Next.js app with `(protected)` route group |
-| `apps/api` | NestJS API with `/v1` prefix |
-| `packages/database` | Prisma schema, migrations, seeds |
+| `apps/web` | Public-facing Next.js app with auth screens |
+| `apps/admin-web` | Admin Next.js app with protected routes and user management |
+| `apps/api` | NestJS API with `/v1` prefix, auth, RBAC, rate limits |
+| `packages/database` | Prisma schema, migrations, seeds, bootstrap script |
 | `packages/contracts` | Shared types/enums safe for browser bundles |
 | `packages/ui` | Shared accessible React components |
 | `packages/config` | ESLint, TS, Tailwind, Prettier configs |
@@ -35,6 +35,10 @@ Build a national platform connecting Nigerian innovators with sponsors across go
 8. Use `@pitchdeck/ui` for shared UI primitives and theme tokens.
 9. API responses must use the shared success/error envelope from contracts.
 10. Health endpoints must remain at `/v1/health`, `/v1/health/live`, `/v1/health/ready`.
+
+## Auth bootstrap
+
+Super-admin is created via `pnpm admin:bootstrap` (not seed). Requires `BOOTSTRAP_SUPER_ADMIN_*` env vars.
 
 ## Brand tokens
 
@@ -60,8 +64,8 @@ pnpm build
 
 ## Next recommended milestones
 
-1. Authentication and RBAC integration
-2. Pitch submission domain models and workflows
-3. Sponsor discovery and matching
-4. Notification and messaging infrastructure
-5. File uploads via MinIO/S3
+1. Pitch submission domain models and workflows
+2. Sponsor discovery and matching
+3. Notification and messaging infrastructure
+4. File uploads via MinIO/S3
+5. OAuth/OIDC social login (deferred from Stage 2)
