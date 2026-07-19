@@ -48,6 +48,144 @@ enum AuditAction {
   USER_REACTIVATE
   REFRESH_REUSE
   BOOTSTRAP
+  PROFILE_UPDATE
+  ORGANIZATION_CREATE
+  ORGANIZATION_UPDATE
+  MEMBERSHIP_CHANGE
+  VERIFICATION_SUBMIT
+  VERIFICATION_DECISION
+  FILE_UPLOAD_INIT
+  FILE_UPLOAD_COMPLETE
+  FILE_REJECTED
+  FILE_ACCESS
+  PITCH_CREATE
+  PITCH_UPDATE
+  PITCH_SUBMIT
+  PITCH_WITHDRAW
+  PITCH_CHANGE_REQUEST
+  PITCH_RESUBMIT
+  REVIEWER_ASSIGN
+  REVIEWER_REVOKE
+  CONFLICT_DECLARE
+  REVIEW_SUBMIT
+  PITCH_APPROVE
+  PITCH_REJECT
+  DISCOVERY_SUSPEND
+}
+
+enum ProfileVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum OrganizationType {
+  CORPORATE
+  ANGEL_NETWORK
+  VENTURE_CAPITAL
+  FOUNDATION
+  NGO
+  GOVERNMENT_AGENCY
+  UNIVERSITY
+  RESEARCH_INSTITUTION
+  INCUBATOR
+  ACCELERATOR
+  DIASPORA_GROUP
+  PHILANTHROPIST
+  OTHER
+}
+
+enum SponsorMembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum SponsorMembershipStatus {
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+enum SponsorVerificationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum InnovationStage {
+  IDEA
+  RESEARCH
+  PROTOTYPE
+  PILOT
+  EARLY_REVENUE
+  GROWTH
+  SCALING
+}
+
+enum PitchStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+  WITHDRAWN
+  ARCHIVED
+}
+
+enum FileUploadStatus {
+  PENDING_UPLOAD
+  UPLOADED
+  PENDING_SCAN
+  AVAILABLE
+  REJECTED
+  DELETED
+}
+
+enum FileScanStatus {
+  PENDING
+  SCANNING
+  CLEAN
+  INFECTED
+  FAILED
+  SKIPPED
+}
+
+enum DocumentPurpose {
+  PITCH_DECK
+  PITCH_BUSINESS_PLAN
+  PITCH_FINANCIAL_MODEL
+  PITCH_PROTOTYPE_IMAGE
+  PITCH_SUPPORTING_EVIDENCE
+  SPONSOR_REGISTRATION_CERT
+  SPONSOR_PROOF_OF_ADDRESS
+  SPONSOR_TAX_EVIDENCE
+  SPONSOR_LETTER_OF_AUTHORITY
+}
+
+enum ReviewAssignmentStatus {
+  ASSIGNED
+  ACCEPTED
+  DECLINED
+  COMPLETED
+  REVOKED
+}
+
+enum ConflictStatus {
+  NOT_DECLARED
+  NO_CONFLICT
+  POTENTIAL_CONFLICT
+  CONFIRMED_CONFLICT
+}
+
+enum ReviewRecommendation {
+  APPROVE
+  REQUEST_CHANGES
+  REJECT
 }
 
 model User {
@@ -74,6 +212,18 @@ model User {
   passwordResetTokens     PasswordResetToken[]
   auditLogs         AuditLog[]               @relation("AuditLogActor")
   assignedRoles     RoleAssignment[]         @relation("RoleAssignedBy")
+  innovatorProfile  InnovatorProfile?
+  sponsorMemberships SponsorOrganizationMembership[]
+  addedMemberships  SponsorOrganizationMembership[] @relation("MembershipAddedBy")
+  pitches           Pitch[]
+  fileAssets        FileAsset[]
+  pitchSubmissions  PitchSubmission[]        @relation("PitchSubmissionSubmitter")
+  reviewAssignments PitchReviewAssignment[]  @relation("ReviewAssignmentReviewer")
+  assignedReviews   PitchReviewAssignment[]  @relation("ReviewAssignmentAssigner")
+  pitchReviews      PitchReview[]
+  verifiedOrganizations SponsorOrganization[] @relation("OrganizationVerifiedBy")
+  sponsorVerificationEvents SponsorVerificationEvent[] @relation("VerificationEventActor")
+  pitchWorkflowEvents PitchWorkflowEvent[]   @relation("PitchWorkflowEventActor")
 
   @@index([accountStatus])
   @@index([stateId])
@@ -168,6 +318,9 @@ model State {
   updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
   roleAssignments RoleAssignment[]
   users           User[]
+  innovatorProfiles InnovatorProfile[]
+  sponsorOrganizations SponsorOrganization[]
+  pitches         Pitch[]
 
   @@map("states")
 }
@@ -181,6 +334,10 @@ model Sector {
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  innovatorProfileSectors InnovatorProfileSector[]
+  sponsorOrganizationSectors SponsorOrganizationSector[]
+  pitchPrimarySectors Pitch[] @relation("PitchPrimarySector")
+  pitchAdditionalSectors PitchSector[]
 
   @@map("sectors")
 }
@@ -201,4 +358,333 @@ model AuditLog {
   @@index([actorId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model InnovatorProfile {
+  id                    String              @id @default(uuid()) @db.Uuid
+  userId                String              @unique @map("user_id") @db.Uuid
+  displayName           String?             @map("display_name") @db.VarChar(150)
+  headline              String?             @db.VarChar(200)
+  biography             String?             @db.VarChar(3000)
+  organizationName      String?             @map("organization_name") @db.VarChar(200)
+  isIndependent         Boolean             @default(false) @map("is_independent")
+  city                  String?             @db.VarChar(100)
+  stateId               String?             @map("state_id") @db.Uuid
+  countryCode           String              @default("NG") @map("country_code") @db.VarChar(2)
+  websiteUrl            String?             @map("website_url") @db.VarChar(500)
+  linkedinUrl           String?             @map("linkedin_url") @db.VarChar(500)
+  portfolioUrl          String?             @map("portfolio_url") @db.VarChar(500)
+  yearsOfExperience     Int?                @map("years_of_experience")
+  innovationInterests   String?             @map("innovation_interests") @db.VarChar(1000)
+  visibility            ProfileVisibility   @default(PRIVATE)
+  completionPercent     Int                 @default(0) @map("completion_percent")
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  state                 State?              @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  sectors               InnovatorProfileSector[]
+
+  @@index([stateId])
+  @@map("innovator_profiles")
+}
+
+model InnovatorProfileSector {
+  id        String           @id @default(uuid()) @db.Uuid
+  profileId String           @map("profile_id") @db.Uuid
+  sectorId  String           @map("sector_id") @db.Uuid
+  profile   InnovatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sector    Sector           @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, sectorId])
+  @@map("innovator_profile_sectors")
+}
+
+model SponsorOrganization {
+  id                      String                    @id @default(uuid()) @db.Uuid
+  legalName               String                    @map("legal_name") @db.VarChar(200)
+  displayName             String                    @map("display_name") @db.VarChar(200)
+  slug                    String                    @unique @db.VarChar(120)
+  organizationType        OrganizationType          @map("organization_type")
+  description             String?                   @db.VarChar(3000)
+  websiteUrl              String?                   @map("website_url") @db.VarChar(500)
+  countryCode             String                    @default("NG") @map("country_code") @db.VarChar(2)
+  stateId                 String?                   @map("state_id") @db.Uuid
+  city                    String?                   @db.VarChar(100)
+  registrationNumber      String?                   @map("registration_number") @db.VarChar(100)
+  yearEstablished         Int?                      @map("year_established")
+  fundingInterest         String?                   @map("funding_interest") @db.VarChar(2000)
+  minFundingAmount        Decimal?                  @map("min_funding_amount") @db.Decimal(18, 2)
+  maxFundingAmount        Decimal?                  @map("max_funding_amount") @db.Decimal(18, 2)
+  preferredStages         String[]                  @default([]) @map("preferred_stages")
+  preferredStateCodes     String[]                  @default([]) @map("preferred_state_codes")
+  verificationStatus      SponsorVerificationStatus @default(DRAFT) @map("verification_status")
+  verificationSubmittedAt DateTime?                 @map("verification_submitted_at") @db.Timestamptz(6)
+  verifiedAt              DateTime?                 @map("verified_at") @db.Timestamptz(6)
+  verifiedById            String?                   @map("verified_by_id") @db.Uuid
+  decisionReason          String?                   @map("decision_reason") @db.VarChar(2000)
+  suspendedAt             DateTime?                 @map("suspended_at") @db.Timestamptz(6)
+  suspendedReason         String?                   @map("suspended_reason") @db.VarChar(2000)
+  lockVersion             Int                       @default(0) @map("lock_version")
+  createdAt               DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  state                   State?                    @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  verifiedBy              User?                     @relation("OrganizationVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  memberships             SponsorOrganizationMembership[]
+  sectors                 SponsorOrganizationSector[]
+  verificationEvents      SponsorVerificationEvent[]
+  fileAssets              FileAsset[]
+
+  @@index([verificationStatus])
+  @@index([stateId])
+  @@map("sponsor_organizations")
+}
+
+model SponsorOrganizationSector {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @map("organization_id") @db.Uuid
+  sectorId       String              @map("sector_id") @db.Uuid
+  organization   SponsorOrganization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sector         Sector              @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, sectorId])
+  @@map("sponsor_organization_sectors")
+}
+
+model SponsorOrganizationMembership {
+  id             String                  @id @default(uuid()) @db.Uuid
+  organizationId String                  @map("organization_id") @db.Uuid
+  userId         String                  @map("user_id") @db.Uuid
+  role           SponsorMembershipRole
+  status         SponsorMembershipStatus @default(ACTIVE)
+  addedById      String?                 @map("added_by_id") @db.Uuid
+  createdAt      DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  organization   SponsorOrganization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedBy        User?                   @relation("MembershipAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("sponsor_organization_memberships")
+}
+
+model SponsorVerificationEvent {
+  id             String                    @id @default(uuid()) @db.Uuid
+  organizationId String                    @map("organization_id") @db.Uuid
+  fromStatus     SponsorVerificationStatus? @map("from_status")
+  toStatus       SponsorVerificationStatus @map("to_status")
+  reason         String?                   @db.VarChar(2000)
+  actorId        String?                   @map("actor_id") @db.Uuid
+  createdAt      DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  organization   SponsorOrganization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor          User?                     @relation("VerificationEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@map("sponsor_verification_events")
+}
+
+model Pitch {
+  id                    String          @id @default(uuid()) @db.Uuid
+  ownerId               String          @map("owner_id") @db.Uuid
+  title                 String          @db.VarChar(200)
+  slug                  String          @unique @db.VarChar(220)
+  shortSummary          String?         @map("short_summary") @db.VarChar(500)
+  problemStatement      String?         @map("problem_statement") @db.VarChar(5000)
+  proposedSolution      String?         @map("proposed_solution") @db.VarChar(5000)
+  targetUsers           String?         @map("target_users") @db.VarChar(2000)
+  innovationStage       InnovationStage? @map("innovation_stage")
+  primarySectorId       String?         @map("primary_sector_id") @db.Uuid
+  stateId               String?         @map("state_id") @db.Uuid
+  geographicReach       String?         @map("geographic_reach") @db.VarChar(1000)
+  businessModel         String?         @map("business_model") @db.VarChar(3000)
+  competitiveAdvantage  String?         @map("competitive_advantage") @db.VarChar(3000)
+  currentTraction       String?         @map("current_traction") @db.VarChar(3000)
+  teamDescription       String?         @map("team_description") @db.VarChar(3000)
+  socialImpact          String?         @map("social_impact") @db.VarChar(3000)
+  scalability           String?         @db.VarChar(3000)
+  risksAndMitigations   String?         @map("risks_and_mitigations") @db.VarChar(3000)
+  ipStatus              String?         @map("ip_status") @db.VarChar(1000)
+  fundingAmountRequested Decimal?       @map("funding_amount_requested") @db.Decimal(18, 2)
+  fundingCurrency       String          @default("NGN") @map("funding_currency") @db.VarChar(3)
+  useOfFunds            String?         @map("use_of_funds") @db.VarChar(3000)
+  expectedMilestones    String?         @map("expected_milestones") @db.VarChar(3000)
+  developmentTimeline   String?         @map("development_timeline") @db.VarChar(2000)
+  termsAccepted         Boolean         @default(false) @map("terms_accepted")
+  status                PitchStatus     @default(DRAFT)
+  currentDraftVersion   Int             @default(1) @map("current_draft_version")
+  lastSubmittedVersion  Int?            @map("last_submitted_version")
+  lockVersion           Int             @default(0) @map("lock_version")
+  submittedAt           DateTime?       @map("submitted_at") @db.Timestamptz(6)
+  approvedAt            DateTime?       @map("approved_at") @db.Timestamptz(6)
+  rejectedAt            DateTime?         @map("rejected_at") @db.Timestamptz(6)
+  withdrawnAt           DateTime?       @map("withdrawn_at") @db.Timestamptz(6)
+  discoverySuspended    Boolean         @default(false) @map("discovery_suspended")
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  owner                 User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  primarySector         Sector?         @relation("PitchPrimarySector", fields: [primarySectorId], references: [id], onDelete: SetNull)
+  state                 State?          @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  additionalSectors     PitchSector[]
+  submissions           PitchSubmission[]
+  fileAssets            FileAsset[]
+  workflowEvents        PitchWorkflowEvent[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([stateId])
+  @@index([primarySectorId])
+  @@map("pitches")
+}
+
+model PitchSector {
+  id       String @id @default(uuid()) @db.Uuid
+  pitchId  String @map("pitch_id") @db.Uuid
+  sectorId String @map("sector_id") @db.Uuid
+  pitch    Pitch  @relation(fields: [pitchId], references: [id], onDelete: Cascade)
+  sector   Sector @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@unique([pitchId, sectorId])
+  @@map("pitch_sectors")
+}
+
+model PitchSubmission {
+  id                    String          @id @default(uuid()) @db.Uuid
+  pitchId               String          @map("pitch_id") @db.Uuid
+  version               Int
+  submittedById         String          @map("submitted_by_id") @db.Uuid
+  submittedAt           DateTime        @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  snapshot              Json
+  profileCompletionAtSubmit Int         @map("profile_completion_at_submit")
+  validationVersion     Int             @default(1) @map("validation_version")
+  reviewStatus          PitchStatus     @map("review_status")
+  decisionAt            DateTime?       @map("decision_at") @db.Timestamptz(6)
+  supersededAt          DateTime?       @map("superseded_at") @db.Timestamptz(6)
+  pitch                 Pitch           @relation(fields: [pitchId], references: [id], onDelete: Restrict)
+  submittedBy           User            @relation("PitchSubmissionSubmitter", fields: [submittedById], references: [id], onDelete: Restrict)
+  documents             PitchSubmissionDocument[]
+  reviewAssignments     PitchReviewAssignment[]
+  reviews               PitchReview[]
+
+  @@unique([pitchId, version])
+  @@index([pitchId])
+  @@map("pitch_submissions")
+}
+
+model PitchSubmissionDocument {
+  id           String          @id @default(uuid()) @db.Uuid
+  submissionId String          @map("submission_id") @db.Uuid
+  fileAssetId  String          @map("file_asset_id") @db.Uuid
+  purpose      DocumentPurpose
+  submission   PitchSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  fileAsset    FileAsset       @relation(fields: [fileAssetId], references: [id], onDelete: Restrict)
+
+  @@unique([submissionId, fileAssetId])
+  @@map("pitch_submission_documents")
+}
+
+model FileAsset {
+  id               String           @id @default(uuid()) @db.Uuid
+  ownerId          String           @map("owner_id") @db.Uuid
+  pitchId          String?          @map("pitch_id") @db.Uuid
+  organizationId   String?          @map("organization_id") @db.Uuid
+  purpose          DocumentPurpose
+  storageProvider  String           @default("minio") @map("storage_provider") @db.VarChar(50)
+  bucket           String           @db.VarChar(100)
+  objectKey        String           @map("object_key") @db.VarChar(500)
+  originalFilename String           @map("original_filename") @db.VarChar(255)
+  displayFilename  String           @map("display_filename") @db.VarChar(255)
+  declaredMimeType String           @map("declared_mime_type") @db.VarChar(100)
+  detectedMimeType String?          @map("detected_mime_type") @db.VarChar(100)
+  sizeBytes        BigInt?          @map("size_bytes")
+  checksumSha256   String?          @map("checksum_sha256") @db.VarChar(64)
+  uploadStatus     FileUploadStatus @default(PENDING_UPLOAD) @map("upload_status")
+  scanStatus       FileScanStatus   @default(PENDING) @map("scan_status")
+  scanMessage      String?          @map("scan_message") @db.VarChar(500)
+  intentExpiresAt  DateTime?        @map("intent_expires_at") @db.Timestamptz(6)
+  finalizedAt      DateTime?        @map("finalized_at") @db.Timestamptz(6)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  owner            User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  pitch            Pitch?           @relation(fields: [pitchId], references: [id], onDelete: SetNull)
+  organization     SponsorOrganization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  submissionDocuments PitchSubmissionDocument[]
+
+  @@index([ownerId])
+  @@index([pitchId])
+  @@index([organizationId])
+  @@index([uploadStatus])
+  @@map("file_assets")
+}
+
+model PitchReviewAssignment {
+  id               String                 @id @default(uuid()) @db.Uuid
+  submissionId     String                 @map("submission_id") @db.Uuid
+  reviewerId       String                 @map("reviewer_id") @db.Uuid
+  assignedById     String                 @map("assigned_by_id") @db.Uuid
+  status           ReviewAssignmentStatus @default(ASSIGNED)
+  assignedAt       DateTime               @default(now()) @map("assigned_at") @db.Timestamptz(6)
+  dueAt            DateTime?              @map("due_at") @db.Timestamptz(6)
+  acceptedAt       DateTime?              @map("accepted_at") @db.Timestamptz(6)
+  completedAt      DateTime?              @map("completed_at") @db.Timestamptz(6)
+  revokedAt        DateTime?              @map("revoked_at") @db.Timestamptz(6)
+  revocationReason String?                @map("revocation_reason") @db.VarChar(1000)
+  conflictStatus   ConflictStatus         @default(NOT_DECLARED) @map("conflict_status")
+  conflictExplanation String?             @map("conflict_explanation") @db.VarChar(1000)
+  submission       PitchSubmission        @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer         User                   @relation("ReviewAssignmentReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  assignedBy       User                   @relation("ReviewAssignmentAssigner", fields: [assignedById], references: [id], onDelete: Restrict)
+  review           PitchReview?
+
+  @@unique([submissionId, reviewerId])
+  @@index([reviewerId])
+  @@map("pitch_review_assignments")
+}
+
+model PitchReview {
+  id                    String               @id @default(uuid()) @db.Uuid
+  assignmentId          String               @unique @map("assignment_id") @db.Uuid
+  submissionId          String               @map("submission_id") @db.Uuid
+  reviewerId            String               @map("reviewer_id") @db.Uuid
+  recommendation        ReviewRecommendation
+  strengths             String?              @db.VarChar(3000)
+  risks                 String?              @db.VarChar(3000)
+  questions             String?              @db.VarChar(3000)
+  requiredChanges       String?              @map("required_changes") @db.VarChar(3000)
+  confidentialNotes     String?              @map("confidential_notes") @db.VarChar(3000)
+  applicantVisibleNotes String?              @map("applicant_visible_notes") @db.VarChar(3000)
+  averageScore          Decimal?             @map("average_score") @db.Decimal(4, 2)
+  submittedAt           DateTime             @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  assignment            PitchReviewAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  submission            PitchSubmission      @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer              User                 @relation(fields: [reviewerId], references: [id], onDelete: Restrict)
+  scores                PitchReviewScore[]
+
+  @@index([submissionId])
+  @@map("pitch_reviews")
+}
+
+model PitchReviewScore {
+  id       String      @id @default(uuid()) @db.Uuid
+  reviewId String      @map("review_id") @db.Uuid
+  criterion String     @db.VarChar(100)
+  score    Int
+  review   PitchReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, criterion])
+  @@map("pitch_review_scores")
+}
+
+model PitchWorkflowEvent {
+  id         String      @id @default(uuid()) @db.Uuid
+  pitchId    String      @map("pitch_id") @db.Uuid
+  fromStatus PitchStatus? @map("from_status")
+  toStatus   PitchStatus @map("to_status")
+  reason     String?     @db.VarChar(2000)
+  actorId    String?     @map("actor_id") @db.Uuid
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  pitch      Pitch       @relation(fields: [pitchId], references: [id], onDelete: Cascade)
+  actor      User?       @relation("PitchWorkflowEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([pitchId])
+  @@map("pitch_workflow_events")
 }

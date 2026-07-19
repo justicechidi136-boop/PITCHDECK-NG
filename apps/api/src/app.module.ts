@@ -9,6 +9,12 @@ import { HealthModule } from "./health/health.module";
 import { AuthModule } from "./auth/auth.module";
 import { AdminModule } from "./admin/admin.module";
 import { TestModule } from "./test/test.module";
+import { InnovatorModule } from "./innovator/innovator.module";
+import { PitchesModule } from "./pitches/pitches.module";
+import { SponsorModule } from "./sponsor/sponsor.module";
+import { FilesModule } from "./files/files.module";
+import { ReviewerModule } from "./reviewer/reviewer.module";
+import { DiscoveryModule } from "./discovery/discovery.module";
 import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
 import { ResponseEnvelopeInterceptor } from "./common/interceptors/response-envelope.interceptor";
 import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
@@ -35,6 +41,12 @@ import type { EnvConfig } from "./config/env.schema";
     HealthModule,
     AuthModule,
     AdminModule,
+    InnovatorModule,
+    PitchesModule,
+    SponsorModule,
+    FilesModule,
+    ReviewerModule,
+    DiscoveryModule,
     TestModule,
   ],
   providers: [
