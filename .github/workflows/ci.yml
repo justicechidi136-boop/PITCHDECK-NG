@@ -60,6 +60,7 @@ jobs:
       OBJECT_STORAGE_SECRET_KEY: pitchdeck_minio_dev
       OBJECT_STORAGE_BUCKET: pitchdeck-uploads
       FILE_SCAN_MODE: mock
+      ENABLE_TEST_ENDPOINTS: "true"
 
     steps:
       - name: Checkout
