@@ -12,7 +12,7 @@ import {
   Input,
 } from "@pitchdeck/ui";
 import { apiFetch, fetchCsrfToken, ApiClientError } from "@/lib/api-client";
-import { RoleType } from "@pitchdeck/contracts";
+import { RoleType, type AuthUser } from "@pitchdeck/contracts";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export function AdminLoginForm() {
 
     try {
       await fetchCsrfToken();
-      const user = await apiFetch<{ roles: Array<{ role: string }> }>("/auth/login", {
+      const { user } = await apiFetch<{ user: AuthUser }>("/auth/login", {
         method: "POST",
         body: JSON.stringify({
           email: form.get("email"),
@@ -36,7 +36,7 @@ export function AdminLoginForm() {
       });
       const isAdmin = user.roles.some((r) =>
         [RoleType.SUPER_ADMIN, RoleType.NATIONAL_ADMIN, RoleType.STATE_ADMIN].includes(
-          r.role as RoleType,
+          r.role,
         ),
       );
       if (!isAdmin) {

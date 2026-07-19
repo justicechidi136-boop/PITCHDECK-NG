@@ -19,7 +19,7 @@ test.describe("Admin RBAC", () => {
       await page.getByLabel("Email").fill(account.email);
       await page.getByLabel("Password").fill(account.password);
       await page.getByRole("button", { name: "Sign in" }).click();
-      await expect(page.getByRole("alert")).toContainText(/admin access required/i);
+      await expect(page.locator("form").getByRole("alert")).toContainText(/admin access required/i);
     }
   });
 
@@ -76,7 +76,7 @@ test.describe("Admin RBAC", () => {
     await page.getByLabel("Email").fill(fixtures.suspendedAdmin.email);
     await page.getByLabel("Password").fill(fixtures.suspendedAdmin.password);
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("alert")).toContainText(/suspended/i);
+    await expect(page.locator("form").getByRole("alert")).toContainText(/suspended/i);
   });
 });
 
