@@ -1,4 +1,4 @@
-# PitchDeck Nigeria
+﻿# PitchDeck Nigeria
 
 PitchDeck Nigeria connects young Nigerian innovators, startups, students, researchers, inventors, and community organisations with government agencies, corporate organisations, angel investors, VC firms, NGOs, universities, incubators, philanthropists, and Nigerian diaspora sponsors.
 
@@ -58,7 +58,7 @@ pnpm.cmd install
 copy .env.example .env
 
 # Start local services
-pnpm.cmd docker:up
+pnpm.cmd docker:up  # host ports default to 15432/16379/19000/19001 via `.env.example`
 
 # Generate Prisma client and run migrations
 pnpm.cmd db:generate
@@ -91,7 +91,7 @@ pnpm dev
 | Admin Web  | http://localhost:3001        |
 | API        | http://localhost:4000/v1     |
 | Swagger    | http://localhost:4000/v1/docs |
-| MinIO Console | http://localhost:9001     |
+| MinIO Console | http://localhost:19001 (see `MINIO_CONSOLE_HOST_PORT`) |
 
 ## Common commands
 
@@ -124,7 +124,7 @@ Not implemented (future milestones):
 
 ## Documentation
 
-- [AGENTS.md](./AGENTS.md) — AI agent and contributor guidance
+- [AGENTS.md](./AGENTS.md) â€” AI agent and contributor guidance
 - [docs/PRODUCT_REQUIREMENTS.md](./docs/PRODUCT_REQUIREMENTS.md)
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 - [docs/SECURITY.md](./docs/SECURITY.md)
@@ -132,4 +132,5 @@ Not implemented (future milestones):
 
 ## License
 
-Proprietary — PitchDeck Nigeria.
+Proprietary â€” PitchDeck Nigeria.
+

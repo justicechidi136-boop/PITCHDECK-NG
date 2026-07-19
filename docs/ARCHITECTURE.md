@@ -1,4 +1,4 @@
-# Architecture
+﻿# Architecture
 
 ## Overview
 
@@ -113,8 +113,9 @@ Errors:
 
 ## Local development topology
 
-Docker Compose provides PostgreSQL, Redis, and MinIO on localhost ports 5432, 6379, and 9000/9001 respectively. Applications run on the host via `pnpm dev`.
+Docker Compose provides PostgreSQL, Redis, and MinIO on host-mapped ports 15432, 16379, and 19000/19001 (defaults via POSTGRES_HOST_PORT, REDIS_HOST_PORT, MINIO_*_HOST_PORT) respectively. Applications run on the host via `pnpm dev`.
 
 ## Deployment notes
 
 Production deployment guidance lives in [DEPLOYMENT.md](./DEPLOYMENT.md). Nginx config placeholder is in `infrastructure/nginx/default.conf`.
+
