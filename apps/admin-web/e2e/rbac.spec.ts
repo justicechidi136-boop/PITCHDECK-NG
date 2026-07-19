@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { readAdminE2EFixtures } from "./admin-fixtures";
 
-const fixtures = global.adminE2E!;
+const fixtures = readAdminE2EFixtures();
 
 test.describe("Admin RBAC", () => {
   test("redirects unauthenticated users to login", async ({ page }) => {
