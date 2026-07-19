@@ -11,6 +11,9 @@ importers:
       '@pitchdeck/config':
         specifier: workspace:*
         version: link:packages/config
+      dotenv-cli:
+        specifier: ^8.0.0
+        version: 8.0.0
       prettier:
         specifier: ^3.5.3
         version: 3.9.5
@@ -74,10 +77,10 @@ importers:
         version: 10.5.4(postcss@8.5.19)
       eslint:
         specifier: ^9.28.0
-        version: 9.39.5(jiti@1.21.7)
+        version: 9.39.5(jiti@2.7.0)
       eslint-config-next:
         specifier: ^15.3.3
-        version: 15.5.20(eslint@9.39.5(jiti@1.21.7))(typescript@5.9.3)
+        version: 15.5.20(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.20.1)(ts-node@10.9.2(@types/node@22.20.1)(typescript@5.9.3))
@@ -259,10 +262,10 @@ importers:
         version: 10.5.4(postcss@8.5.19)
       eslint:
         specifier: ^9.28.0
-        version: 9.39.5(jiti@2.7.0)
+        version: 9.39.5(jiti@1.21.7)
       eslint-config-next:
         specifier: ^15.3.3
-        version: 15.5.20(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+        version: 15.5.20(eslint@9.39.5(jiti@1.21.7))(typescript@5.9.3)
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.20.1)(ts-node@10.9.2(@types/node@22.20.1)(typescript@5.9.3))
@@ -2672,6 +2675,14 @@ packages:
     resolution: {integrity: sha512-A2is4PLG+eeSfoTMA95/s4pvAoSo2mKtiM5jlHkAVewmiO8ISFTFKZjH7UAM1Atli/OT/7JHOrJRJiMKUZKYBw==}
     engines: {node: '>=12'}
     deprecated: Use your platform's native DOMException instead
+
+  dotenv-cli@8.0.0:
+    resolution: {integrity: sha512-aLqYbK7xKOiTMIRf1lDPbI+Y+Ip/wo5k3eyp6ePysVaSqbyxjyK3dK35BTxG+rmd7djf5q2UPs4noPNH+cj0Qw==}
+    hasBin: true
+
+  dotenv-expand@10.0.0:
+    resolution: {integrity: sha512-GopVGCpVS1UKH75VKHGuQFqS1Gusej0z4FyQkPdwjil2gNIv+LNsqBlboOzpJFZKVT95GkCyWJbBSdFEFUWI2A==}
+    engines: {node: '>=12'}
 
   dotenv-expand@12.0.3:
     resolution: {integrity: sha512-uc47g4b+4k/M/SeaW1y4OApx+mtLWl92l5LMPP0GNXctZqELk+YGgOPIIC5elYmUH4OuoK3JLhuRUYegeySiFA==}
@@ -7452,6 +7463,15 @@ snapshots:
   domexception@4.0.0:
     dependencies:
       webidl-conversions: 7.0.0
+
+  dotenv-cli@8.0.0:
+    dependencies:
+      cross-spawn: 7.0.6
+      dotenv: 16.6.1
+      dotenv-expand: 10.0.0
+      minimist: 1.2.8
+
+  dotenv-expand@10.0.0: {}
 
   dotenv-expand@12.0.3:
     dependencies:

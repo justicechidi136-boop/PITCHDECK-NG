@@ -2,13 +2,14 @@
   "name": "@pitchdeck/database",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
@@ -21,7 +22,7 @@
     "lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/*.test.ts\" --max-warnings 0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm test:unit",
-    "test:unit": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --passWithNoTests"
+    "test:unit": "jest --passWithNoTests"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2"
