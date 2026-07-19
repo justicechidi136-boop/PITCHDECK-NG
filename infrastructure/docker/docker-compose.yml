@@ -67,6 +67,19 @@ services:
       "
     restart: "no"
 
+  clamav:
+    image: clamav/clamav:1.4
+    container_name: pitchdeck-clamav
+    restart: unless-stopped
+    ports:
+      - "3310:3310"
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
 volumes:
   pitchdeck_postgres_data:
   pitchdeck_redis_data:
