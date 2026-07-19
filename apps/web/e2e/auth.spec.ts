@@ -126,7 +126,7 @@ test("lists sessions, logs out, and redirects protected account routes", async (
   await expect(page.getByRole("heading", { name: "Active sessions" })).toBeVisible();
   await expect(page.getByText("(current)")).toBeVisible();
 
-  await page.getByRole("button", { name: "Sign out" }).click();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL("/login");
 
   await page.goto("/account");
