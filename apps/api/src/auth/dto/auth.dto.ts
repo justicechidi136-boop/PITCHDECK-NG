@@ -4,10 +4,13 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsBoolean,
+  Equals,
+  IsIn,
   MaxLength,
   MinLength,
 } from "class-validator";
-import { RoleType, ScopeType, AccountStatus, PUBLIC_REGISTRATION_ROLES } from "@pitchdeck/contracts";
+import { RoleType, ScopeType, AccountStatus, PUBLIC_REGISTRATION_ROLES, NIGERIAN_STATE_CODES } from "@pitchdeck/contracts";
 
 export class RegisterDto {
   @IsEmail()
@@ -31,6 +34,15 @@ export class RegisterDto {
 
   @IsEnum(PUBLIC_REGISTRATION_ROLES)
   role!: (typeof PUBLIC_REGISTRATION_ROLES)[number];
+
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(NIGERIAN_STATE_CODES)
+  stateCode!: (typeof NIGERIAN_STATE_CODES)[number];
+
+  @IsBoolean()
+  @Equals(true, { message: "You must accept the terms of service" })
+  acceptedTerms!: true;
 }
 
 export class LoginDto {

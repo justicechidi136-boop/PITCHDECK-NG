@@ -69,15 +69,23 @@ export class AdminUsersService {
       ...(query.accountStatus ? { accountStatus: query.accountStatus as AccountStatus } : {}),
       ...(accessibleStates !== "all"
         ? {
-            roleAssignments: {
-              some: {
-                OR: [
-                  { scopeType: ScopeType.GLOBAL, role: { type: { in: [RoleType.SUPER_ADMIN, RoleType.NATIONAL_ADMIN] } } },
-                  { scopeType: ScopeType.COUNTRY },
-                  { stateId: { in: accessibleStates } },
-                ],
+            OR: [
+              { stateId: { in: accessibleStates } },
+              {
+                roleAssignments: {
+                  some: {
+                    OR: [
+                      {
+                        scopeType: ScopeType.GLOBAL,
+                        role: { type: { in: [RoleType.SUPER_ADMIN, RoleType.NATIONAL_ADMIN] } },
+                      },
+                      { scopeType: ScopeType.COUNTRY },
+                      { stateId: { in: accessibleStates } },
+                    ],
+                  },
+                },
               },
-            },
+            ],
           }
         : {}),
     };
@@ -112,7 +120,7 @@ export class AdminUsersService {
     const targetStateIds = user.roleAssignments
       .filter((r): r is typeof r & { stateId: string } => r.stateId !== null)
       .map((r) => r.stateId);
-    if (!this.rbacService.canAccessUser(actor, targetStateIds)) {
+    if (!this.rbacService.canAccessUser(actor, targetStateIds, user.stateId)) {
       throw new ForbiddenException({ code: AUTH_ERROR_CODES.FORBIDDEN, message: "Access denied" });
     }
     return this.toAdminUserListItem(user);

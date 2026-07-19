@@ -71,6 +71,8 @@ describe("Auth integration", () => {
         firstName: "Test",
         lastName: "Innovator",
         role: RoleType.INNOVATOR,
+        stateCode: "LA",
+        acceptedTerms: true,
       })
       .expect(201);
 
@@ -105,6 +107,34 @@ describe("Auth integration", () => {
 
     const meRes = await agent.get("/v1/auth/me").expect(200);
     expect(meRes.body.data.email).toBe(email);
+  });
+
+  it("blocks login for unverified accounts", async () => {
+    const agent = request.agent(app.getHttpServer());
+    const csrf = await getCsrf(agent);
+    const email = `unverified-${Date.now()}@test.example`;
+
+    await agent
+      .post("/v1/auth/register")
+      .set("X-CSRF-Token", csrf)
+      .set("Origin", "http://localhost:3000")
+      .send({
+        email,
+        password: "testpassword123",
+        firstName: "Unverified",
+        lastName: "User",
+        role: RoleType.INNOVATOR,
+        stateCode: "LA",
+        acceptedTerms: true,
+      })
+      .expect(201);
+
+    await agent
+      .post("/v1/auth/login")
+      .set("X-CSRF-Token", csrf)
+      .set("Origin", "http://localhost:3000")
+      .send({ email, password: "testpassword123" })
+      .expect(403);
   });
 
   it("enforces CSRF on mutating requests", async () => {

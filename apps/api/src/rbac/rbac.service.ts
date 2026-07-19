@@ -141,6 +141,7 @@ export class RbacService {
   canAccessUser(
     actor: AuthenticatedUser,
     targetStateIds: string[],
+    userHomeStateId?: string | null,
   ): boolean {
     if (this.isSuperAdmin(actor) || this.isNationalAdmin(actor)) {
       return true;
@@ -152,10 +153,14 @@ export class RbacService {
     if (accessible.length === 0) {
       return false;
     }
-    if (targetStateIds.length === 0) {
+    const effectiveStateIds = [
+      ...(userHomeStateId ? [userHomeStateId] : []),
+      ...targetStateIds,
+    ];
+    if (effectiveStateIds.length === 0) {
       return false;
     }
-    return targetStateIds.every((id) => accessible.includes(id));
+    return effectiveStateIds.every((id) => accessible.includes(id));
   }
 
   async resolveStateId(stateId?: string, stateCode?: string): Promise<string | undefined> {

@@ -8,6 +8,7 @@ import { RedisModule } from "./redis/redis.module";
 import { HealthModule } from "./health/health.module";
 import { AuthModule } from "./auth/auth.module";
 import { AdminModule } from "./admin/admin.module";
+import { TestModule } from "./test/test.module";
 import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
 import { ResponseEnvelopeInterceptor } from "./common/interceptors/response-envelope.interceptor";
 import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
@@ -34,6 +35,7 @@ import type { EnvConfig } from "./config/env.schema";
     HealthModule,
     AuthModule,
     AdminModule,
+    TestModule,
   ],
   providers: [
     {

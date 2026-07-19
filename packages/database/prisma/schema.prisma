@@ -63,8 +63,11 @@ model User {
   suspendedAt       DateTime?                @map("suspended_at") @db.Timestamptz(6)
   suspendedReason   String?                  @map("suspended_reason") @db.VarChar(500)
   deactivatedAt     DateTime?                @map("deactivated_at") @db.Timestamptz(6)
+  stateId           String?                  @map("state_id") @db.Uuid
+  termsAcceptedAt   DateTime?                @map("terms_accepted_at") @db.Timestamptz(6)
   createdAt         DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt         DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  state             State?                   @relation(fields: [stateId], references: [id], onDelete: SetNull)
   roleAssignments   RoleAssignment[]
   authSessions      AuthSession[]
   emailVerificationTokens EmailVerificationToken[]
@@ -73,6 +76,7 @@ model User {
   assignedRoles     RoleAssignment[]         @relation("RoleAssignedBy")
 
   @@index([accountStatus])
+  @@index([stateId])
   @@map("users")
 }
 
@@ -163,6 +167,7 @@ model State {
   createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
   roleAssignments RoleAssignment[]
+  users           User[]
 
   @@map("states")
 }

@@ -7,19 +7,19 @@ import { SessionService } from "./services/session.service";
 import { CookieService } from "./services/cookie.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CsrfGuard } from "./guards/csrf.guard";
-import { EmailService } from "../email/email.service";
+import { EmailModule } from "../email/email.module";
 import { AuditService } from "../audit/audit.service";
 import { RateLimitService } from "../rate-limit/rate-limit.service";
 import { RbacService } from "../rbac/rbac.service";
 
 @Module({
+  imports: [EmailModule],
   controllers: [AuthController],
   providers: [
     AuthService,
     TokenService,
     SessionService,
     CookieService,
-    EmailService,
     AuditService,
     RateLimitService,
     RbacService,
@@ -39,7 +39,7 @@ import { RbacService } from "../rbac/rbac.service";
     AuditService,
     TokenService,
     SessionService,
-    EmailService,
+    EmailModule,
     RateLimitService,
   ],
 })

@@ -2,7 +2,7 @@
 
 PitchDeck Nigeria connects young Nigerian innovators, startups, students, researchers, inventors, and community organisations with government agencies, corporate organisations, angel investors, VC firms, NGOs, universities, incubators, philanthropists, and Nigerian diaspora sponsors.
 
-This repository contains the platform foundation: monorepo infrastructure, application shells, shared packages, local development services, and CI workflows.
+This repository contains the platform monorepo: public web, admin console, API, shared packages, local development services, authentication/RBAC (Stage 2), and CI workflows.
 
 ## Tech stack
 
@@ -22,15 +22,15 @@ This repository contains the platform foundation: monorepo infrastructure, appli
 
 ```
 apps/
-  web/           Public innovator/sponsor platform shell
-  admin-web/     Admin operations console shell
+  web/           Public innovator/sponsor platform
+  admin-web/     Admin operations console
   api/           NestJS REST API
 packages/
   database/      Prisma schema, migrations, seed scripts
   contracts/     Shared enums, API types, Zod validation
   ui/            Accessible shared UI components
   config/        Shared TS, ESLint, Tailwind, Prettier configs
-  testing/       Reusable test factories and helpers
+  testing/       Test factories and E2E helpers
 infrastructure/
   docker/        Local PostgreSQL, Redis, MinIO
   nginx/         Reverse proxy placeholder
@@ -47,26 +47,23 @@ docs/            Product, architecture, security, deployment docs
 ## Quick start (Windows)
 
 ```powershell
-# Enable Corepack and pnpm
 corepack enable
 corepack prepare pnpm@9.15.4 --activate
-
-# Install dependencies
 pnpm.cmd install
-
-# Copy environment template
 copy .env.example .env
-
-# Start local services
-pnpm.cmd docker:up  # host ports default to 15432/16379/19000/19001 via `.env.example`
-
-# Generate Prisma client and run migrations
+pnpm.cmd docker:up
 pnpm.cmd db:generate
 pnpm.cmd db:migrate
 pnpm.cmd db:seed
-
-# Start all apps in development
+pnpm.cmd admin:bootstrap
 pnpm.cmd dev
+```
+
+Set bootstrap credentials in `.env` before running `admin:bootstrap`:
+
+```env
+BOOTSTRAP_SUPER_ADMIN_EMAIL=admin@example.test
+BOOTSTRAP_SUPER_ADMIN_PASSWORD=securepassword12
 ```
 
 ## Quick start (macOS/Linux)
@@ -80,57 +77,127 @@ pnpm docker:up
 pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
+pnpm admin:bootstrap
 pnpm dev
 ```
 
 ## Development URLs
 
-| Service    | URL                          |
-| ---------- | ---------------------------- |
-| Web        | http://localhost:3000        |
-| Admin Web  | http://localhost:3001        |
-| API        | http://localhost:4000/v1     |
-| Swagger    | http://localhost:4000/v1/docs |
-| MinIO Console | http://localhost:19001 (see `MINIO_CONSOLE_HOST_PORT`) |
+| Service       | URL                              |
+| ------------- | -------------------------------- |
+| Web           | http://localhost:3000            |
+| Admin Web     | http://localhost:3001          |
+| API           | http://localhost:4000/v1         |
+| Swagger       | http://localhost:4000/v1/docs    |
+| MinIO Console | http://localhost:19001           |
+
+## Stage 2 — Authentication and RBAC
+
+Implemented in this milestone:
+
+### Public registration and login (`apps/web`)
+
+- `/register` — INNOVATOR/SPONSOR signup with Nigerian state and terms acceptance
+- `/verify-email` — email verification (token link)
+- `/login`, `/logout` — session cookies (HttpOnly access/refresh)
+- `/forgot-password`, `/reset-password` — password reset without account enumeration
+- `/account`, `/account/security` — profile and active session management
+
+### Admin console (`apps/admin-web`)
+
+- `/login` — admin-only sign in (SUPER_ADMIN, NATIONAL_ADMIN, STATE_ADMIN)
+- Protected `/dashboard`, `/users`, `/users/[id]` with server-side guards
+- Role assignment UI (state required for STATE_ADMIN)
+- `/access-denied` for authenticated non-admin users
+
+### API security (`apps/api`)
+
+- CSRF double-submit cookie + `X-CSRF-Token` header
+- Origin validation against `CORS_ORIGINS`
+- Refresh token rotation with reuse detection
+- Redis-backed rate limits
+- Audit logging for sensitive actions
+- State-scoped admin isolation (Lagos admin cannot access Rivers users)
+
+### Bootstrap and admin creation
+
+```powershell
+pnpm.cmd admin:bootstrap
+```
+
+Creates the first super admin from env vars (never seeded). Additional admin users are created via `POST /v1/admin/users` (super admin only) with activation email.
+
+### Email capture (dev/E2E only)
+
+For automated tests and local verification without SMTP:
+
+```env
+EMAIL_PROVIDER=capture
+ENABLE_TEST_ENDPOINTS=true
+```
+
+Captured messages are available at `GET /v1/test/emails?to=user@example.test`. Tokens are not written to application logs when using the capture provider.
+
+### Environment variables (auth)
+
+| Variable | Purpose |
+| -------- | ------- |
+| `AUTH_JWT_SECRET` | JWT signing secret (32+ chars) |
+| `AUTH_CSRF_SECRET` | CSRF HMAC secret (32+ chars) |
+| `AUTH_COOKIE_SECURE` | `true` in production |
+| `CORS_ORIGINS` | Allowed browser origins |
+| `WEB_BASE_URL` | Public app base URL for email links |
+| `ADMIN_WEB_BASE_URL` | Admin app base URL |
+| `EMAIL_PROVIDER` | `log`, `smtp`, or `capture` |
+| `ENABLE_TEST_ENDPOINTS` | Enables `/v1/test/emails` (never in production) |
+| `BOOTSTRAP_SUPER_ADMIN_*` | First super-admin credentials |
+
+See [`.env.example`](./.env.example) for the full list.
 
 ## Common commands
 
 ```powershell
 pnpm.cmd lint
 pnpm.cmd typecheck
-pnpm.cmd test
+pnpm.cmd test:unit
+pnpm.cmd --filter @pitchdeck/api test:integration
 pnpm.cmd build
 pnpm.cmd docker:down
 ```
 
-## Scope of this foundation
+## Playwright E2E
 
-Implemented:
+Install Chromium once:
 
-- Monorepo scaffolding and shared configuration
-- Public landing page shell with Nigerian innovation branding
-- Admin console shell with protected route group placeholder
-- API health endpoints with PostgreSQL and Redis readiness checks
-- Prisma schema for core reference entities (users, roles, states, sectors, audit logs)
-- Idempotent seed data for 37 states (36 + FCT) and 16 sectors
-- Docker Compose for local dependencies
-- CI workflow for lint, typecheck, tests, and production builds
+```powershell
+pnpm exec playwright install chromium
+```
 
-Not implemented (future milestones):
+Ensure Docker, migrations, seed, and bootstrap are complete, then:
 
-- Authentication and authorization
+```powershell
+pnpm.cmd --filter @pitchdeck/web test:e2e
+pnpm.cmd --filter @pitchdeck/admin-web test:e2e
+```
+
+E2E runs use unique emails per test, isolated fixture users, the email capture helper (no tokens in logs), and API/database fixtures — never browser localStorage role manipulation.
+
+## Deferred (Stage 3+)
+
 - Pitch submission and review workflows
-- Sponsorship, funding, payments, messaging, and challenges
+- Sponsor discovery and matching
+- OAuth/OIDC social login, MFA, phone OTP
+- Payments, messaging, challenges, file uploads
 
 ## Documentation
 
-- [AGENTS.md](./AGENTS.md) â€” AI agent and contributor guidance
-- [docs/PRODUCT_REQUIREMENTS.md](./docs/PRODUCT_REQUIREMENTS.md)
-- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
-- [docs/SECURITY.md](./docs/SECURITY.md)
-- [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+- [AGENTS.md](./AGENTS.md) — AI agent and contributor guidance
+- [docs/API.md](./docs/API.md) — Auth and admin endpoints
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — System design
+- [docs/SECURITY.md](./docs/SECURITY.md) — Security posture
+- [docs/PRODUCT_REQUIREMENTS.md](./docs/PRODUCT_REQUIREMENTS.md) — Product scope
+- [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) — Deployment notes
 
 ## License
 
-Proprietary â€” PitchDeck Nigeria.
-
+Proprietary — PitchDeck Nigeria.

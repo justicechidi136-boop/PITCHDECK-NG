@@ -31,7 +31,7 @@ export const envSchema = z
       .default("false")
       .transform((v) => v === "true"),
     AUTH_CSRF_SECRET: z.string().min(32),
-    EMAIL_PROVIDER: z.enum(["log", "smtp"]).default("log"),
+    EMAIL_PROVIDER: z.enum(["log", "smtp", "capture"]).default("log"),
     EMAIL_FROM: z.string().email().default("noreply@pitchdeck.ng"),
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.coerce.number().int().positive().optional(),
@@ -45,6 +45,10 @@ export const envSchema = z
     BOOTSTRAP_SUPER_ADMIN_PASSWORD: z.string().min(12).max(128).optional(),
     BOOTSTRAP_SUPER_ADMIN_FIRST_NAME: z.string().min(1).max(100).optional(),
     BOOTSTRAP_SUPER_ADMIN_LAST_NAME: z.string().min(1).max(100).optional(),
+    ENABLE_TEST_ENDPOINTS: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((v) => v === "true"),
   })
   .superRefine((data, ctx) => {
     if (data.EMAIL_PROVIDER === "smtp") {

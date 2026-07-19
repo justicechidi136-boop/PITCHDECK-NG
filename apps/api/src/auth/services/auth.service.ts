@@ -80,6 +80,14 @@ export class AuthService {
       throw new BadRequestException("Invalid role");
     }
 
+    const stateId = await this.rbacService.resolveStateId(undefined, dto.stateCode);
+    if (!stateId) {
+      throw new BadRequestException({
+        code: AUTH_ERROR_CODES.VALIDATION_ERROR,
+        message: "Invalid state",
+      });
+    }
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email.trim(),
@@ -87,6 +95,8 @@ export class AuthService {
         firstName: dto.firstName.trim(),
         lastName: dto.lastName.trim(),
         passwordHash,
+        stateId,
+        termsAcceptedAt: new Date(),
         accountStatus: AccountStatus.PENDING_VERIFICATION,
         roleAssignments: {
           create: {
@@ -137,6 +147,13 @@ export class AuthService {
       throw new UnauthorizedException({
         code: AUTH_ERROR_CODES.INVALID_CREDENTIALS,
         message: "Invalid email or password",
+      });
+    }
+
+    if (!user.emailVerifiedAt) {
+      throw new ForbiddenException({
+        code: AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED,
+        message: "Please verify your email before signing in",
       });
     }
 

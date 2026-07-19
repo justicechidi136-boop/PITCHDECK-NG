@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import type { Transporter } from "nodemailer";
 import nodemailer from "nodemailer";
 import type { EnvConfig } from "../config/env.schema";
+import { EmailCaptureStore } from "./email-capture.store";
 
 export interface SendEmailOptions {
   to: string;
@@ -13,12 +14,15 @@ export interface SendEmailOptions {
 
 @Injectable()
 export class EmailService {
-  private readonly provider: "log" | "smtp";
+  private readonly provider: "log" | "smtp" | "capture";
   private readonly from: string;
   private readonly nodeEnv: string;
   private transporter: Transporter | null = null;
 
-  constructor(private readonly configService: ConfigService<EnvConfig, true>) {
+  constructor(
+    private readonly configService: ConfigService<EnvConfig, true>,
+    private readonly emailCaptureStore: EmailCaptureStore,
+  ) {
     this.provider = this.configService.get<EnvConfig["EMAIL_PROVIDER"]>("EMAIL_PROVIDER", "log");
     this.from = this.configService.get<string>("EMAIL_FROM", "noreply@pitchdeck.ng");
     this.nodeEnv = this.configService.get<string>("NODE_ENV", "development");
@@ -37,11 +41,16 @@ export class EmailService {
   }
 
   async sendEmail(options: SendEmailOptions): Promise<void> {
+    if (this.provider === "capture") {
+      this.emailCaptureStore.capture(options);
+      return;
+    }
+
     if (this.provider === "log") {
       const logPayload =
         this.nodeEnv === "production"
           ? { to: options.to, subject: options.subject }
-          : options;
+          : { to: options.to, subject: options.subject, text: options.text };
       console.info("[EmailService]", JSON.stringify(logPayload));
       return;
     }

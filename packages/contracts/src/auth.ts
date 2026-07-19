@@ -5,6 +5,7 @@ import {
   ROLE_TYPES,
   SCOPE_TYPES,
 } from "./enums.js";
+import { NIGERIAN_STATE_CODES } from "./states.js";
 import { emailSchema, uuidSchema } from "./validation.js";
 
 export const passwordSchema = z
@@ -18,6 +19,10 @@ export const registerRequestSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   role: z.enum(PUBLIC_REGISTRATION_ROLES),
+  stateCode: z.enum(NIGERIAN_STATE_CODES),
+  acceptedTerms: z.literal(true, {
+    errorMap: () => ({ message: "You must accept the terms of service" }),
+  }),
 });
 
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;

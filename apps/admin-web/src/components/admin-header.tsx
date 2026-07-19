@@ -1,7 +1,6 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Badge } from "@pitchdeck/ui";
 
 export function AdminHeader() {
   const { theme, setTheme } = useTheme();
@@ -13,7 +12,6 @@ export function AdminHeader() {
         <h1 className="text-lg font-semibold text-[var(--color-fg)]">Operations Console</h1>
       </div>
       <div className="flex items-center gap-3">
-        <Badge variant="outline">Auth integration pending</Badge>
         <button
           type="button"
           aria-label="Toggle theme"

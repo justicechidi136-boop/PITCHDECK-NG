@@ -27,6 +27,7 @@ export default function AdminUserDetailPage() {
   const params = useParams<{ userId: string }>();
   const [user, setUser] = useState<AdminUserListItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
   const [role, setRole] = useState<RoleType>(RoleType.REVIEWER);
   const [stateCode, setStateCode] = useState("LA");
 
@@ -39,6 +40,8 @@ export default function AdminUserDetailPage() {
     void (async () => {
       try {
         await loadUser();
+      } catch {
+        setError("Access denied");
       } finally {
         setLoading(false);
       }
@@ -75,8 +78,12 @@ export default function AdminUserDetailPage() {
     await loadUser();
   }
 
-  if (loading || !user) {
+  if (loading) {
     return <LoadingState label="Loading user..." />;
+  }
+
+  if (error || !user) {
+    return <p className="text-red-500">{error ?? "User not found"}</p>;
   }
 
   return (

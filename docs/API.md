@@ -7,7 +7,7 @@ Authentication and RBAC endpoints under `/v1`.
 | Method | Path | Auth | Description |
 | ------ | ---- | ---- | ----------- |
 | GET | `/auth/csrf` | Public | Obtain CSRF token (sets cookie) |
-| POST | `/auth/register` | Public | Register INNOVATOR or SPONSOR |
+| POST | `/auth/register` | Public | Register INNOVATOR or SPONSOR (state + terms required) |
 | POST | `/auth/login` | Public | Sign in (sets HttpOnly cookies) |
 | POST | `/auth/refresh` | Public | Rotate refresh session |
 | POST | `/auth/logout` | Required | Revoke current session |
@@ -49,3 +49,12 @@ pnpm admin:bootstrap
 ```
 
 Requires `BOOTSTRAP_SUPER_ADMIN_EMAIL` and `BOOTSTRAP_SUPER_ADMIN_PASSWORD` in `.env`.
+
+## Test helpers (non-production)
+
+When `ENABLE_TEST_ENDPOINTS=true` and `EMAIL_PROVIDER=capture`:
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/test/emails?to=` | List captured emails for E2E |
+| DELETE | `/test/emails` | Clear captured mailbox |
