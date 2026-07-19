@@ -3,7 +3,7 @@ import {
   INNOVATION_SECTORS,
   NIGERIAN_STATES,
   SYSTEM_ROLES,
-} from "../src/seed-data.js";
+} from "../src/seed-data";
 
 const prisma = new PrismaClient();
 

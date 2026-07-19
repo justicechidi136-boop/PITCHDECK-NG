@@ -1,4 +1,4 @@
-import { NIGERIAN_STATES, INNOVATION_SECTORS, SYSTEM_ROLES } from "./seed-data.js";
+import { NIGERIAN_STATES, INNOVATION_SECTORS, SYSTEM_ROLES } from "./seed-data";
 
 describe("@pitchdeck/database seed data", () => {
   it("defines 37 Nigerian states including FCT", () => {
