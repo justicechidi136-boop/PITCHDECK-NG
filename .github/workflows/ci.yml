@@ -15,6 +15,46 @@ jobs:
     name: Lint, Typecheck, Test, Build
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: pitchdeck
+          POSTGRES_PASSWORD: pitchdeck_dev
+          POSTGRES_DB: pitchdeck
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pitchdeck -d pitchdeck"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://pitchdeck:pitchdeck_dev@localhost:5432/pitchdeck?schema=public
+      REDIS_URL: redis://localhost:6379
+      NODE_ENV: test
+      LOG_LEVEL: silent
+      WEB_BASE_URL: http://localhost:3000
+      ADMIN_WEB_BASE_URL: http://localhost:3001
+      AUTH_JWT_SECRET: ci-jwt-secret-minimum-32-characters-long
+      AUTH_JWT_ACCESS_EXPIRES: 15m
+      AUTH_REFRESH_EXPIRES: 7d
+      AUTH_COOKIE_SECURE: "false"
+      AUTH_CSRF_SECRET: ci-csrf-secret-minimum-32-characters
+      EMAIL_PROVIDER: log
+      EMAIL_FROM: noreply@pitchdeck.test
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,8 +87,12 @@ jobs:
 
       - name: Generate Prisma client
         run: pnpm db:generate
-        env:
-          DATABASE_URL: postgresql://pitchdeck:pitchdeck_dev@localhost:5432/pitchdeck?schema=public
+
+      - name: Apply database migrations
+        run: pnpm db:migrate:deploy
+
+      - name: Seed reference data
+        run: pnpm db:seed
 
       - name: Lint
         run: pnpm lint
