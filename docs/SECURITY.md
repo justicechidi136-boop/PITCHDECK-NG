@@ -77,6 +77,14 @@ Sensitive actions logged to `AuditLog`. Tokens and passwords never stored in met
 
 Local Docker credentials are for development only. Do not expose these ports publicly in shared networks.
 
+## Stage 3 security repairs
+
+- Stage 3 request bodies and query strings are validated at runtime with strict Zod schemas from `@pitchdeck/contracts`; unknown fields, invalid UUIDs, invalid enums, oversized strings, malformed money values, and excessive pagination are rejected before services reach Prisma.
+- Nested Stage 3 mutations verify the child resource belongs to the supplied parent route. Sponsor membership removal is scoped to the target organisation, and reviewer revocation is scoped to the assignment's actual submission and pitch.
+- Removed organisation admins cannot manage memberships. Revoked reviewer assignments no longer grant reviewer workflow access or file access.
+- Upload finalization detects file type from bounded leading bytes, not filename, extension, browser MIME type, or object-storage `ContentType`. Format validation runs before ClamAV scanning.
+- `apps/api/test/stage3-security.integration.spec.ts` covers cross-organisation membership IDs, cross-pitch reviewer assignment IDs, removed member access, revoked reviewer access, and Stage 3 validation failures.
+
 ## Deferred (Stage 4+)
 
 - OAuth/OIDC social login

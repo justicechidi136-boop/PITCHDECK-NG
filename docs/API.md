@@ -247,6 +247,14 @@ State-scoped admin access preserved from Stage 2.
 | POST | `/admin/sponsor-organizations/:id/reject` | Reject verification |
 | POST | `/admin/sponsor-organizations/:id/suspend` | Suspend organisation |
 
+## Stage 3 security repairs
+
+- Stage 3 endpoints use strict shared Zod schemas for request bodies and filters. Unknown properties, invalid UUID parameters, invalid enum values, oversized text, malformed money values, missing lock versions, invalid review score shapes, invalid membership roles, invalid workflow reasons, and page sizes over 50 are rejected.
+- Nested Stage 3 mutations verify that child IDs belong to the supplied parent route. Cross-organisation membership IDs and cross-pitch reviewer assignment IDs return safe errors and do not mutate the child resource.
+- Upload finalization validates actual object size, detects MIME type from bounded leading bytes, and scans only after the byte signature matches the document-purpose allowlist.
+- `GET /discovery/pitches/:pitchId` retrieves the approved immutable submission directly and does not call list pagination.
+- `apps/api/test/stage3-security.integration.spec.ts` covers the repaired authorization and validation boundaries.
+
 ## Object storage and scanning
 
 - Uploads use MinIO/S3 presigned URLs (`OBJECT_STORAGE_*` env vars)
