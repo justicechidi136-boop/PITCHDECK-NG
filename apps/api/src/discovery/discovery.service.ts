@@ -85,51 +85,7 @@ export class DiscoveryService {
       }),
     ]);
 
-    const items: DiscoveryPitchDto[] = pitches.map((pitch) => {
-      const submission = pitch.submissions[0];
-      const snapshot = (submission?.snapshot ?? {}) as Record<string, unknown>;
-      const profile = pitch.owner.innovatorProfile;
-      const snapshotString = (key: string): string | undefined => {
-        const value = snapshot[key];
-        return typeof value === "string" ? value : undefined;
-      };
-      const publicProfile =
-        profile && (profile.visibility as ProfileVisibility) === ProfileVisibility.PUBLIC
-          ? {
-              displayName: profile.displayName ?? undefined,
-              headline: profile.headline ?? undefined,
-              biography: profile.biography ?? undefined,
-              organizationName: profile.organizationName ?? undefined,
-              isIndependent: profile.isIndependent,
-              city: profile.city ?? undefined,
-              stateCode: profile.state?.code,
-              countryCode: profile.countryCode,
-              sectorNames: profile.sectors.map((s) => s.sector.name),
-            }
-          : undefined;
-
-      return {
-        id: submission?.id ?? pitch.id,
-        pitchId: pitch.id,
-        title: snapshotString("title") ?? pitch.title,
-        shortSummary: snapshotString("shortSummary") ?? pitch.shortSummary ?? undefined,
-        problemStatement: snapshotString("problemStatement"),
-        proposedSolution: snapshotString("proposedSolution"),
-        socialImpact: snapshotString("socialImpact"),
-        currentTraction: snapshotString("currentTraction"),
-        innovationStage:
-          (snapshotString("innovationStage") as InnovationStage | undefined) ??
-          (pitch.innovationStage as InnovationStage | null) ??
-          undefined,
-        primarySectorName: pitch.primarySector?.name,
-        stateCode: pitch.state?.code,
-        fundingAmountRequested: snapshotString("fundingAmountRequested") ?? pitch.fundingAmountRequested?.toString(),
-        fundingCurrency: pitch.fundingCurrency,
-        approvedAt: pitch.approvedAt?.toISOString(),
-        innovatorProfile: publicProfile,
-        documentIds: submission?.documents.map((d) => d.fileAssetId) ?? [],
-      };
-    });
+    const items: DiscoveryPitchDto[] = pitches.map((pitch) => this.toDiscoveryDto(pitch));
 
     return {
       items,
@@ -164,14 +120,87 @@ export class DiscoveryService {
         message: "Pitch not found or not discoverable",
       });
     }
-    const listed = await this.listPitches(user, { page: 1, pageSize: 1000 });
-    const found = listed.items.find((i) => i.pitchId === pitchId);
-    if (!found) {
+    if (!pitch.submissions[0]) {
       throw new NotFoundException({
         code: STAGE3_ERROR_CODES.NOT_FOUND,
         message: "Pitch not found",
       });
     }
-    return found;
+    return this.toDiscoveryDto(pitch);
+  }
+
+  private toDiscoveryDto(pitch: {
+    id: string;
+    title: string;
+    shortSummary: string | null;
+    innovationStage: string | null;
+    fundingAmountRequested: { toString(): string } | null;
+    fundingCurrency: string;
+    approvedAt: Date | null;
+    primarySector?: { name: string } | null;
+    state?: { code: string } | null;
+    owner: {
+      innovatorProfile?: {
+        displayName: string | null;
+        headline: string | null;
+        biography: string | null;
+        organizationName: string | null;
+        isIndependent: boolean;
+        city: string | null;
+        countryCode: string;
+        visibility: string;
+        state?: { code: string } | null;
+        sectors: Array<{ sector: { name: string } }>;
+      } | null;
+    };
+    submissions: Array<{
+      id: string;
+      snapshot: unknown;
+      documents: Array<{ fileAssetId: string }>;
+    }>;
+  }): DiscoveryPitchDto {
+    const submission = pitch.submissions[0];
+    const snapshot = (submission?.snapshot ?? {}) as Record<string, unknown>;
+    const profile = pitch.owner.innovatorProfile;
+    const snapshotString = (key: string): string | undefined => {
+      const value = snapshot[key];
+      return typeof value === "string" ? value : undefined;
+    };
+    const publicProfile =
+      profile && (profile.visibility as ProfileVisibility) === ProfileVisibility.PUBLIC
+        ? {
+            displayName: profile.displayName ?? undefined,
+            headline: profile.headline ?? undefined,
+            biography: profile.biography ?? undefined,
+            organizationName: profile.organizationName ?? undefined,
+            isIndependent: profile.isIndependent,
+            city: profile.city ?? undefined,
+            stateCode: profile.state?.code,
+            countryCode: profile.countryCode,
+            sectorNames: profile.sectors.map((s) => s.sector.name),
+          }
+        : undefined;
+
+    return {
+      id: submission?.id ?? pitch.id,
+      pitchId: pitch.id,
+      title: snapshotString("title") ?? pitch.title,
+      shortSummary: snapshotString("shortSummary") ?? pitch.shortSummary ?? undefined,
+      problemStatement: snapshotString("problemStatement"),
+      proposedSolution: snapshotString("proposedSolution"),
+      socialImpact: snapshotString("socialImpact"),
+      currentTraction: snapshotString("currentTraction"),
+      innovationStage:
+        (snapshotString("innovationStage") as InnovationStage | undefined) ??
+        (pitch.innovationStage as InnovationStage | null) ??
+        undefined,
+      primarySectorName: pitch.primarySector?.name,
+      stateCode: pitch.state?.code,
+      fundingAmountRequested: snapshotString("fundingAmountRequested") ?? pitch.fundingAmountRequested?.toString(),
+      fundingCurrency: pitch.fundingCurrency,
+      approvedAt: pitch.approvedAt?.toISOString(),
+      innovatorProfile: publicProfile,
+      documentIds: submission?.documents.map((d) => d.fileAssetId) ?? [],
+    };
   }
 }
