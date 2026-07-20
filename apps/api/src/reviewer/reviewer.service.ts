@@ -231,7 +231,11 @@ export class ReviewerService {
     const assignment = await this.prisma.pitchReviewAssignment.findUnique({
       where: { id: assignmentId },
     });
-    if (!assignment || assignment.reviewerId !== userId) {
+    if (
+      !assignment ||
+      assignment.reviewerId !== userId ||
+      (assignment.status as ReviewAssignmentStatus) === ReviewAssignmentStatus.REVOKED
+    ) {
       throw new NotFoundException({
         code: STAGE3_ERROR_CODES.NOT_FOUND,
         message: "Assignment not found",
