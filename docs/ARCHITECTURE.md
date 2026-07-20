@@ -39,7 +39,7 @@ flowchart TB
   API --> Redis
   Web --> API
   Admin --> API
-  API -. future .-> MinIO
+  API --> MinIO
 ```
 
 ## Application boundaries
@@ -202,6 +202,12 @@ Errors:
 7. Clean files become `AVAILABLE`; infected or unscanned files remain rejected and cannot be downloaded.
 
 Production requires `FILE_SCAN_MODE=clamav`. Mock mode auto-passes scans for local development only.
+
+## Stage 3 security boundaries
+
+Stage 3 controllers use strict shared Zod schemas for runtime request validation before service logic. Nested resource mutations must authorize both the supplied parent route ID and the actual child resource. This applies to sponsor memberships under organisations and reviewer assignments under pitches.
+
+Discovery detail retrieval directly loads a single approved, non-suspended pitch with its approved immutable submission and maps it to the browser-safe discovery DTO. It does not call list pagination or consume the list-search rate limit.
 
 ## Local development topology
 

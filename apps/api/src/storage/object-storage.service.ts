@@ -106,6 +106,25 @@ export class ObjectStorageService {
     }
   }
 
+  async getObjectPrefixBuffer(objectKey: string, maxBytes: number): Promise<Buffer | null> {
+    try {
+      const result = await this.client.send(
+        new GetObjectCommand({
+          Bucket: this.bucket,
+          Key: objectKey,
+          Range: `bytes=0-${Math.max(0, maxBytes - 1).toString()}`,
+        }),
+      );
+      if (!result.Body) {
+        return null;
+      }
+      const bytes = await result.Body.transformToByteArray();
+      return Buffer.from(bytes);
+    } catch {
+      return null;
+    }
+  }
+
   getBucket(): string {
     return this.bucket;
   }

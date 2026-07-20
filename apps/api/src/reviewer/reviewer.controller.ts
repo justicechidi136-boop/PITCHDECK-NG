@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Body, Param } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, ParseUUIDPipe } from "@nestjs/common";
+import { conflictDeclarationSchema, submitReviewSchema } from "@pitchdeck/contracts";
 import { ReviewerService } from "./reviewer.service";
 import { CurrentUser, type RequestUser } from "../auth/decorators/current-user.decorator";
+import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
 
 @Controller("reviewer/assignments")
 export class ReviewerController {
@@ -12,35 +14,35 @@ export class ReviewerController {
   }
 
   @Get(":assignmentId")
-  get(@CurrentUser() user: RequestUser, @Param("assignmentId") assignmentId: string) {
+  get(@CurrentUser() user: RequestUser, @Param("assignmentId", ParseUUIDPipe) assignmentId: string) {
     return this.reviewerService.getAssignment(user, assignmentId);
   }
 
   @Post(":assignmentId/accept")
-  accept(@CurrentUser() user: RequestUser, @Param("assignmentId") assignmentId: string) {
+  accept(@CurrentUser() user: RequestUser, @Param("assignmentId", ParseUUIDPipe) assignmentId: string) {
     return this.reviewerService.accept(user, assignmentId);
   }
 
   @Post(":assignmentId/decline")
-  decline(@CurrentUser() user: RequestUser, @Param("assignmentId") assignmentId: string) {
+  decline(@CurrentUser() user: RequestUser, @Param("assignmentId", ParseUUIDPipe) assignmentId: string) {
     return this.reviewerService.decline(user, assignmentId);
   }
 
   @Post(":assignmentId/conflict")
   conflict(
     @CurrentUser() user: RequestUser,
-    @Param("assignmentId") assignmentId: string,
-    @Body() body: { status: string; explanation?: string },
+    @Param("assignmentId", ParseUUIDPipe) assignmentId: string,
+    @Body(new ZodValidationPipe(conflictDeclarationSchema)) body: never,
   ) {
-    return this.reviewerService.declareConflict(user, assignmentId, body as never);
+    return this.reviewerService.declareConflict(user, assignmentId, body);
   }
 
   @Post(":assignmentId/review")
   review(
     @CurrentUser() user: RequestUser,
-    @Param("assignmentId") assignmentId: string,
-    @Body() body: Record<string, unknown>,
+    @Param("assignmentId", ParseUUIDPipe) assignmentId: string,
+    @Body(new ZodValidationPipe(submitReviewSchema)) body: never,
   ) {
-    return this.reviewerService.submitReview(user, assignmentId, body as never);
+    return this.reviewerService.submitReview(user, assignmentId, body);
   }
 }

@@ -217,6 +217,8 @@ Implemented in this milestone:
 
 State-scoped admin isolation from Stage 2 is preserved throughout Stage 3.
 
+Stage 3 security repairs include parent-child direct-ID authorization for nested membership and reviewer-assignment routes, strict runtime request validation using shared Zod contracts, byte-based upload type detection before malware scanning, and direct discovery-detail retrieval from approved immutable submissions.
+
 See [docs/API.md](./docs/API.md) for Stage 3 endpoints.
 
 ## Deferred (Stage 4+)

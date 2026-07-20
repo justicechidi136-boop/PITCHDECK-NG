@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { PrismaClient } from "@prisma/client";
@@ -140,7 +141,25 @@ export class AdminPitchesService {
 
   async revokeReviewer(user: AuthenticatedUser, pitchId: string, assignmentId: string, reason?: string) {
     this.rbac.assertAdminAccess(user);
-    await this.getPitch(user, pitchId);
+    const assignment = await this.prisma.pitchReviewAssignment.findUnique({
+      where: { id: assignmentId },
+      include: { submission: { include: { pitch: true } } },
+    });
+    if (!assignment || assignment.submission.pitchId !== pitchId) {
+      throw new NotFoundException({
+        code: STAGE3_ERROR_CODES.NOT_FOUND,
+        message: "Review assignment not found",
+      });
+    }
+    if (!this.scope.canAdminAccessPitchState(user, assignment.submission.pitch.stateId)) {
+      throw new ForbiddenException({ code: STAGE3_ERROR_CODES.FORBIDDEN, message: "Out of scope" });
+    }
+    if ((assignment.status as ReviewAssignmentStatus) === ReviewAssignmentStatus.REVOKED) {
+      throw new BadRequestException({
+        code: STAGE3_ERROR_CODES.INVALID_TRANSITION,
+        message: "Review assignment already revoked",
+      });
+    }
     await this.prisma.pitchReviewAssignment.update({
       where: { id: assignmentId },
       data: { status: ReviewAssignmentStatus.REVOKED, revokedAt: new Date(), revocationReason: reason },
@@ -150,6 +169,7 @@ export class AdminPitchesService {
       entityType: "PitchReviewAssignment",
       entityId: assignmentId,
       actorId: user.id,
+      metadata: { pitchId, submissionId: assignment.submissionId },
     });
     return { revoked: true };
   }

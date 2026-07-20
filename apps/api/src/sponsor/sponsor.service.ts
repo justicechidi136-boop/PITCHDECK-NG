@@ -237,14 +237,20 @@ export class SponsorService {
     membershipId: string,
   ): Promise<void> {
     await this.scope.assertOrgMember(organizationId, user.id, SponsorMembershipRole.ADMIN);
-    const membership = await this.prisma.sponsorOrganizationMembership.findUniqueOrThrow({
-      where: { id: membershipId },
+    const membership = await this.prisma.sponsorOrganizationMembership.findFirst({
+      where: { id: membershipId, organizationId },
     });
+    if (!membership) {
+      throw new NotFoundException({
+        code: STAGE3_ERROR_CODES.NOT_FOUND,
+        message: "Membership not found",
+      });
+    }
 
     if ((membership.role as SponsorMembershipRole) === SponsorMembershipRole.OWNER) {
       const ownerCount = await this.prisma.sponsorOrganizationMembership.count({
         where: {
-          organizationId,
+          organizationId: membership.organizationId,
           role: SponsorMembershipRole.OWNER,
           status: SponsorMembershipStatus.ACTIVE,
         },
@@ -258,7 +264,7 @@ export class SponsorService {
     }
 
     await this.prisma.sponsorOrganizationMembership.update({
-      where: { id: membershipId },
+      where: { organizationId_userId: { organizationId: membership.organizationId, userId: membership.userId } },
       data: { status: SponsorMembershipStatus.REMOVED },
     });
 
@@ -267,7 +273,7 @@ export class SponsorService {
       entityType: "SponsorOrganizationMembership",
       entityId: membershipId,
       actorId: user.id,
-      metadata: { action: "remove" },
+      metadata: { action: "remove", organizationId: membership.organizationId },
     });
   }
 

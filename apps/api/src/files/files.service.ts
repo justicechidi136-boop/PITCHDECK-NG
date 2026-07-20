@@ -30,6 +30,32 @@ import { MalwareScannerService } from "../storage/malware-scanner.service";
 import { Stage3ScopeService } from "../stage3/stage3-scope.service";
 import { RbacService } from "../rbac/rbac.service";
 
+const FILE_TYPE_SNIFF_BYTES = 4100;
+
+function detectMimeFromBytes(buffer: Buffer): string | null {
+  if (buffer.length >= 5 && buffer.subarray(0, 5).toString("ascii") === "%PDF-") {
+    return "application/pdf";
+  }
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer.subarray(1, 4).toString("ascii") === "PNG" &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return "image/png";
+  }
+  if (buffer.length >= 4 && buffer.subarray(0, 4).toString("binary") === "PK\u0003\u0004") {
+    return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  }
+  return null;
+}
+
 @Injectable()
 export class FilesService {
   constructor(
@@ -171,9 +197,17 @@ export class FilesService {
       });
     }
 
-    const detectedMime = head.contentType ?? asset.declaredMimeType;
+    const prefix = await this.storage.getObjectPrefixBuffer(asset.objectKey, FILE_TYPE_SNIFF_BYTES);
+    const detectedMime = prefix ? detectMimeFromBytes(prefix) : null;
+    if (!detectedMime) {
+      await this.rejectFile(asset.id, "Unknown file signature");
+      throw new BadRequestException({
+        code: STAGE3_ERROR_CODES.VALIDATION_FAILED,
+        message: "Uploaded file type could not be verified",
+      });
+    }
     if (!isMimeAllowed(asset.purpose as DocumentPurpose, detectedMime)) {
-      await this.rejectFile(asset.id, "MIME mismatch");
+      await this.rejectFile(asset.id, "File signature not allowed");
       throw new BadRequestException({
         code: STAGE3_ERROR_CODES.VALIDATION_FAILED,
         message: "Detected MIME type not allowed",
