@@ -1,6 +1,8 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Controller, Get, Param, ParseUUIDPipe, Query } from "@nestjs/common";
+import { discoveryFiltersSchema } from "@pitchdeck/contracts";
 import { DiscoveryService } from "./discovery.service";
 import { CurrentUser, type RequestUser } from "../auth/decorators/current-user.decorator";
+import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
 
 @Controller("discovery/pitches")
 export class DiscoveryController {
@@ -9,25 +11,21 @@ export class DiscoveryController {
   @Get()
   list(
     @CurrentUser() user: RequestUser,
-    @Query("sectorId") sectorId?: string,
-    @Query("stateCode") stateCode?: string,
-    @Query("innovationStage") innovationStage?: string,
-    @Query("keyword") keyword?: string,
-    @Query("page") page?: string,
-    @Query("pageSize") pageSize?: string,
+    @Query(new ZodValidationPipe(discoveryFiltersSchema))
+    filters: {
+      sectorId?: string;
+      stateCode?: string;
+      innovationStage?: string;
+      keyword?: string;
+      page: number;
+      pageSize: number;
+    },
   ) {
-    return this.discoveryService.listPitches(user, {
-      sectorId,
-      stateCode,
-      innovationStage,
-      keyword,
-      page: page ? Number(page) : 1,
-      pageSize: pageSize ? Number(pageSize) : 20,
-    });
+    return this.discoveryService.listPitches(user, filters);
   }
 
   @Get(":pitchId")
-  get(@CurrentUser() user: RequestUser, @Param("pitchId") pitchId: string) {
+  get(@CurrentUser() user: RequestUser, @Param("pitchId", ParseUUIDPipe) pitchId: string) {
     return this.discoveryService.getPitch(user, pitchId);
   }
 }

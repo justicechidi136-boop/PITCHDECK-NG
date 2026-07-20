@@ -6,9 +6,16 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
 } from "@nestjs/common";
+import {
+  addSponsorMemberSchema,
+  createOrganizationSchema,
+  updateOrganizationSchema,
+} from "@pitchdeck/contracts";
 import { SponsorService } from "./sponsor.service";
 import { CurrentUser, type RequestUser } from "../auth/decorators/current-user.decorator";
+import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
 
 @Controller("sponsor-organizations")
 export class SponsorController {
@@ -20,20 +27,20 @@ export class SponsorController {
   }
 
   @Post()
-  create(@CurrentUser() user: RequestUser, @Body() body: Record<string, unknown>) {
-    return this.sponsorService.createOrganization(user, body as never);
+  create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(createOrganizationSchema)) body: never) {
+    return this.sponsorService.createOrganization(user, body);
   }
 
   @Get(":organizationId")
-  get(@CurrentUser() user: RequestUser, @Param("organizationId") organizationId: string) {
+  get(@CurrentUser() user: RequestUser, @Param("organizationId", ParseUUIDPipe) organizationId: string) {
     return this.sponsorService.getOrganization(user, organizationId);
   }
 
   @Patch(":organizationId")
   update(
     @CurrentUser() user: RequestUser,
-    @Param("organizationId") organizationId: string,
-    @Body() body: Record<string, unknown>,
+    @Param("organizationId", ParseUUIDPipe) organizationId: string,
+    @Body(new ZodValidationPipe(updateOrganizationSchema)) body: Record<string, unknown>,
   ) {
     return this.sponsorService.updateOrganization(user, organizationId, body);
   }
@@ -41,7 +48,7 @@ export class SponsorController {
   @Get(":organizationId/members")
   listMembers(
     @CurrentUser() user: RequestUser,
-    @Param("organizationId") organizationId: string,
+    @Param("organizationId", ParseUUIDPipe) organizationId: string,
   ) {
     return this.sponsorService.listMembers(user, organizationId);
   }
@@ -49,17 +56,17 @@ export class SponsorController {
   @Post(":organizationId/members")
   addMember(
     @CurrentUser() user: RequestUser,
-    @Param("organizationId") organizationId: string,
-    @Body() body: { email: string; role: string },
+    @Param("organizationId", ParseUUIDPipe) organizationId: string,
+    @Body(new ZodValidationPipe(addSponsorMemberSchema)) body: never,
   ) {
-    return this.sponsorService.addMember(user, organizationId, body as never);
+    return this.sponsorService.addMember(user, organizationId, body);
   }
 
   @Delete(":organizationId/members/:membershipId")
   removeMember(
     @CurrentUser() user: RequestUser,
-    @Param("organizationId") organizationId: string,
-    @Param("membershipId") membershipId: string,
+    @Param("organizationId", ParseUUIDPipe) organizationId: string,
+    @Param("membershipId", ParseUUIDPipe) membershipId: string,
   ) {
     return this.sponsorService.removeMember(user, organizationId, membershipId);
   }
@@ -67,7 +74,7 @@ export class SponsorController {
   @Get(":organizationId/verification")
   getVerification(
     @CurrentUser() user: RequestUser,
-    @Param("organizationId") organizationId: string,
+    @Param("organizationId", ParseUUIDPipe) organizationId: string,
   ) {
     return this.sponsorService.getVerification(user, organizationId);
   }
@@ -75,7 +82,7 @@ export class SponsorController {
   @Post(":organizationId/verification/submit")
   submitVerification(
     @CurrentUser() user: RequestUser,
-    @Param("organizationId") organizationId: string,
+    @Param("organizationId", ParseUUIDPipe) organizationId: string,
   ) {
     return this.sponsorService.submitVerification(user, organizationId);
   }

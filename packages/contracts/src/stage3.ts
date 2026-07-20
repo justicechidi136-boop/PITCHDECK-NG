@@ -7,14 +7,16 @@ import {
   ReviewRecommendation,
   REVIEW_CRITERIA,
 } from "./stage3-enums.js";
-import type {
+import {
   SponsorMembershipRole,
   SponsorVerificationStatus,
   PitchStatus,
+  ConflictStatus,
+} from "./stage3-enums.js";
+import type {
   FileUploadStatus,
   FileScanStatus,
   ReviewAssignmentStatus,
-  ConflictStatus,
 } from "./stage3-enums.js";
 
 export * from "./stage3-enums.js";
@@ -237,6 +239,17 @@ export interface DiscoveryPitchDto {
   documentIds: string[];
 }
 
+const uuidSchema = z.string().uuid();
+const reasonSchema = z.string().min(1).max(2000);
+const paginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
+}).strict();
+
+export const uuidParamSchema = z.object({
+  id: uuidSchema,
+}).strict();
+
 export const updateInnovatorProfileSchema = z.object({
   displayName: z.string().min(1).max(150).optional(),
   headline: z.string().min(1).max(200).optional(),
@@ -252,11 +265,11 @@ export const updateInnovatorProfileSchema = z.object({
   innovationInterests: z.string().max(1000).optional(),
   visibility: z.nativeEnum(ProfileVisibility).optional(),
   sectorIds: z.array(z.string().uuid()).max(10).optional(),
-});
+}).strict();
 
 export const createPitchSchema = z.object({
   title: z.string().min(3).max(200),
-});
+}).strict();
 
 export const updatePitchSchema = z.object({
   title: z.string().min(3).max(200).optional(),
@@ -283,7 +296,7 @@ export const updatePitchSchema = z.object({
   developmentTimeline: z.string().max(2000).optional(),
   termsAccepted: z.boolean().optional(),
   lockVersion: z.number().int().min(0),
-});
+}).strict();
 
 export const createOrganizationSchema = z.object({
   legalName: z.string().min(2).max(200),
@@ -293,7 +306,25 @@ export const createOrganizationSchema = z.object({
   websiteUrl: z.string().url().max(500).optional().or(z.literal("")),
   stateId: z.string().uuid().optional(),
   city: z.string().max(100).optional(),
-});
+}).strict();
+
+export const updateOrganizationSchema = z.object({
+  legalName: z.string().min(2).max(200).optional(),
+  displayName: z.string().min(2).max(200).optional(),
+  description: z.string().max(3000).optional(),
+  websiteUrl: z.string().url().max(500).optional().or(z.literal("")),
+  stateId: uuidSchema.optional(),
+  city: z.string().max(100).optional(),
+  registrationNumber: z.string().max(100).optional(),
+  yearEstablished: z.number().int().min(1800).max(2200).optional(),
+  fundingInterest: z.string().max(2000).optional(),
+  lockVersion: z.number().int().min(0),
+}).strict();
+
+export const addSponsorMemberSchema = z.object({
+  email: z.string().email().max(255),
+  role: z.nativeEnum(SponsorMembershipRole),
+}).strict();
 
 export const uploadIntentSchema = z.object({
   purpose: z.nativeEnum(DocumentPurpose),
@@ -302,7 +333,12 @@ export const uploadIntentSchema = z.object({
   sizeBytes: z.number().int().positive(),
   pitchId: z.string().uuid().optional(),
   organizationId: z.string().uuid().optional(),
-});
+}).strict();
+
+export const conflictDeclarationSchema = z.object({
+  status: z.nativeEnum(ConflictStatus),
+  explanation: z.string().max(1000).optional(),
+}).strict();
 
 export const submitReviewSchema = z.object({
   recommendation: z.nativeEnum(ReviewRecommendation),
@@ -318,7 +354,7 @@ export const submitReviewSchema = z.object({
       score: z.number().int().min(1).max(5),
     }),
   ).length(REVIEW_CRITERIA.length),
-});
+}).strict();
 
 export const discoveryFiltersSchema = z.object({
   sectorId: z.string().uuid().optional(),
@@ -329,4 +365,25 @@ export const discoveryFiltersSchema = z.object({
   keyword: z.string().max(100).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
-});
+}).strict();
+
+export const adminPitchFiltersSchema = paginationSchema.extend({
+  status: z.nativeEnum(PitchStatus).optional(),
+  stateId: uuidSchema.optional(),
+}).strict();
+
+export const adminSponsorOrganizationFiltersSchema = paginationSchema.extend({
+  status: z.nativeEnum(SponsorVerificationStatus).optional(),
+}).strict();
+
+export const assignReviewerSchema = z.object({
+  reviewerId: uuidSchema,
+}).strict();
+
+export const workflowReasonSchema = z.object({
+  reason: reasonSchema,
+}).strict();
+
+export const optionalWorkflowReasonSchema = z.object({
+  reason: reasonSchema.optional(),
+}).strict();
