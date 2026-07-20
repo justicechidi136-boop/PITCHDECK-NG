@@ -136,9 +136,10 @@ Bootstrap super admin is created via `pnpm admin:bootstrap` (env vars, not seed)
 
 | Service | Role |
 | ------- | ---- |
-| PostgreSQL | Users, roles, sessions, tokens, audit logs, reference data |
+| PostgreSQL | Users, roles, sessions, tokens, audit logs, reference data, Stage 3 domain |
 | Redis | Rate limits, future caching |
-| MinIO | Deferred file uploads |
+| MinIO | S3-compatible object storage for pitch and sponsor documents |
+| ClamAV | Malware scanning for uploaded files (`FILE_SCAN_MODE=clamav`) |
 | Email capture | E2E/dev-only in-memory mailbox at `/v1/test/emails` |
 
 ## Shared packages
@@ -190,11 +191,23 @@ Errors:
 | `GET /v1/health/live` | Process liveness |
 | `GET /v1/health/ready` | Dependency readiness (PostgreSQL, Redis) |
 
+## File upload and scanning flow
+
+1. Client requests `POST /v1/files/upload-intents` with purpose, MIME type, and size.
+2. API creates a `FileAsset` record with a random object key and returns a presigned PUT URL.
+3. Client uploads bytes directly to MinIO/S3.
+4. Client calls `POST /v1/files/:fileId/complete`.
+5. API performs a storage `HEAD` check, validates size and detected MIME type.
+6. API streams the object to ClamAV via the INSTREAM protocol.
+7. Clean files become `AVAILABLE`; infected or unscanned files remain rejected and cannot be downloaded.
+
+Production requires `FILE_SCAN_MODE=clamav`. Mock mode auto-passes scans for local development only.
+
 ## Local development topology
 
-Docker Compose provides PostgreSQL, Redis, and MinIO on host-mapped ports 15432, 16379, and 19000/19001. Applications run on the host via `pnpm dev`.
+Docker Compose provides PostgreSQL, Redis, MinIO, and ClamAV on host-mapped ports 15432, 16379, 19000/19001, and 3310. Applications run on the host via `pnpm dev`.
 
-Playwright E2E starts the API and target web app automatically; Docker must be running for database and Redis.
+Playwright E2E starts the API and target web app automatically; Docker must be running for database, Redis, MinIO, and ClamAV.
 
 ## Deployment notes
 

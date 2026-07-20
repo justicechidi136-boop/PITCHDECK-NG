@@ -45,6 +45,10 @@ export class AuditService {
       "refreshToken",
       "accessToken",
       "csrfToken",
+      "invitationToken",
+      "signedUrl",
+      "uploadUrl",
+      "downloadUrl",
     ]);
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(metadata)) {

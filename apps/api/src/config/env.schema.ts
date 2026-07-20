@@ -49,6 +49,34 @@ export const envSchema = z
       .enum(["true", "false"])
       .default("false")
       .transform((v) => v === "true"),
+    OBJECT_STORAGE_ENDPOINT: z.string().url().default("http://localhost:19000"),
+    OBJECT_STORAGE_INTERNAL_ENDPOINT: z
+      .string()
+      .url()
+      .default("http://localhost:19000"),
+    OBJECT_STORAGE_REGION: z.string().default("us-east-1"),
+    OBJECT_STORAGE_BUCKET: z.string().default("pitchdeck-uploads"),
+    OBJECT_STORAGE_ACCESS_KEY: z.string().optional(),
+    OBJECT_STORAGE_SECRET_KEY: z.string().optional(),
+    OBJECT_STORAGE_FORCE_PATH_STYLE: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((v) => v === "true"),
+    OBJECT_STORAGE_SIGNED_URL_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(3600)
+      .default(300),
+    UPLOAD_DOCUMENT_MAX_BYTES: z.coerce.number().int().positive().default(15_728_640),
+    UPLOAD_IMAGE_MAX_BYTES: z.coerce.number().int().positive().default(8_388_608),
+    UPLOAD_INTENT_TTL_MINUTES: z.coerce.number().int().positive().default(15),
+    FILE_SCAN_MODE: z.enum(["mock", "clamav", "disabled"]).default("mock"),
+    CLAMAV_HOST: z.string().default("localhost"),
+    CLAMAV_PORT: z.coerce.number().int().positive().default(3310),
+    FILE_SCAN_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(60),
+    PITCH_MIN_PROFILE_COMPLETION: z.coerce.number().int().min(0).max(100).default(80),
+    PITCH_DEFAULT_CURRENCY: z.string().length(3).default("NGN"),
   })
   .superRefine((data, ctx) => {
     if (data.EMAIL_PROVIDER === "smtp") {
@@ -73,6 +101,43 @@ export const envSchema = z
         message: "AUTH_COOKIE_SECURE must be true in production",
         path: ["AUTH_COOKIE_SECURE"],
       });
+    }
+    if (data.NODE_ENV === "production") {
+      if (data.EMAIL_PROVIDER !== "smtp") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "EMAIL_PROVIDER must be smtp in production",
+          path: ["EMAIL_PROVIDER"],
+        });
+      }
+      if (data.ENABLE_TEST_ENDPOINTS) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "ENABLE_TEST_ENDPOINTS must be false in production",
+          path: ["ENABLE_TEST_ENDPOINTS"],
+        });
+      }
+      if (!data.OBJECT_STORAGE_ACCESS_KEY || !data.OBJECT_STORAGE_SECRET_KEY) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Object storage credentials required in production",
+          path: ["OBJECT_STORAGE_ACCESS_KEY"],
+        });
+      }
+      if (data.FILE_SCAN_MODE !== "clamav") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "FILE_SCAN_MODE must be clamav in production",
+          path: ["FILE_SCAN_MODE"],
+        });
+      }
+      if (data.OBJECT_STORAGE_SIGNED_URL_TTL_SECONDS > 900) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Signed URL TTL must not exceed 900 seconds in production",
+          path: ["OBJECT_STORAGE_SIGNED_URL_TTL_SECONDS"],
+        });
+      }
     }
   });
 

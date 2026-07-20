@@ -112,6 +112,46 @@ export class ApiTestClient {
     });
   }
 
+  async registerSponsor(input: {
+    email: string;
+    password?: string;
+    stateCode?: string;
+  }) {
+    return this.request("/auth/register", {
+      method: "POST",
+      body: {
+        email: input.email,
+        password: input.password ?? TEST_PASSWORD,
+        firstName: "Sponsor",
+        lastName: "User",
+        role: "SPONSOR",
+        stateCode: input.stateCode ?? "LA",
+        acceptedTerms: true,
+      },
+    });
+  }
+
+  async verifyEmailFromCapture(email: string, apiUrl = DEFAULT_API_URL): Promise<void> {
+    const captured = await waitForCapturedEmail(email, { apiUrl });
+    const token = extractQueryParam(captured.actionUrl, "token");
+    await this.request("/auth/email-verification/confirm", {
+      method: "POST",
+      body: { token },
+    });
+  }
+
+  async registerAndLoginInnovator(email: string, stateCode = "LA"): Promise<void> {
+    await this.registerInnovator({ email, stateCode });
+    await this.verifyEmailFromCapture(email);
+    await this.login(email);
+  }
+
+  async registerAndLoginSponsor(email: string, stateCode = "LA"): Promise<void> {
+    await this.registerSponsor({ email, stateCode });
+    await this.verifyEmailFromCapture(email);
+    await this.login(email);
+  }
+
   async login(email: string, password = TEST_PASSWORD) {
     return this.request("/auth/login", {
       method: "POST",

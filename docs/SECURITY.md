@@ -61,12 +61,26 @@ Sensitive actions logged to `AuditLog`. Tokens and passwords never stored in met
 - Structured logging with authorization/cookie redaction
 - Global exception filter suppresses stack traces in production
 
+## File upload security (Stage 3)
+
+- Presigned URLs with short TTL (max 900s in production)
+- Random object keys — no user identifiers in storage paths
+- MIME allowlists per document purpose; detected MIME validated on finalize
+- Size limits enforced at intent creation and after upload via HEAD
+- ClamAV scanning required before files become `AVAILABLE`
+- Fail-closed: scanner unavailable, timeout, or malware → file rejected
+- Production env validation rejects `FILE_SCAN_MODE=mock` or `disabled`
+- Download URLs require ownership, admin scope, or reviewer assignment
+- Storage credentials and object keys never returned in discovery or pitch list APIs
+
 ## Dependency services
 
 Local Docker credentials are for development only. Do not expose these ports publicly in shared networks.
 
-## Deferred (Stage 2)
+## Deferred (Stage 4+)
 
 - OAuth/OIDC social login
 - MFA / passkeys
 - Phone OTP
+- Payments and billing
+- Messaging and notifications

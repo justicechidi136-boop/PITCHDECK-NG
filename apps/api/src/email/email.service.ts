@@ -91,4 +91,60 @@ export class EmailService {
       html: `<p>An admin account was created for you.</p><p><a href="${activateUrl}">Activate account</a></p>`,
     };
   }
+
+  buildPitchSubmittedEmail(pitchTitle: string, pitchUrl: string): Pick<SendEmailOptions, "subject" | "html" | "text"> {
+    return {
+      subject: "Pitch submitted — PitchDeck Nigeria",
+      text: `Your pitch "${pitchTitle}" was submitted. View status: ${pitchUrl}`,
+      html: `<p>Your pitch <strong>${pitchTitle}</strong> was submitted successfully.</p><p><a href="${pitchUrl}">View pitch status</a></p>`,
+    };
+  }
+
+  buildPitchChangesRequestedEmail(pitchTitle: string, reason: string, pitchUrl: string): Pick<SendEmailOptions, "subject" | "html" | "text"> {
+    return {
+      subject: "Changes requested on your pitch",
+      text: `${reason}\n\nEdit: ${pitchUrl}`,
+      html: `<p>Changes were requested for <strong>${pitchTitle}</strong>.</p><p>${reason}</p><p><a href="${pitchUrl}">Edit pitch</a></p>`,
+    };
+  }
+
+  buildPitchApprovedEmail(pitchTitle: string): Pick<SendEmailOptions, "subject" | "html" | "text"> {
+    return {
+      subject: "Pitch approved — PitchDeck Nigeria",
+      text: `Your pitch "${pitchTitle}" has been approved.`,
+      html: `<p>Your pitch <strong>${pitchTitle}</strong> has been approved and may appear in sponsor discovery.</p>`,
+    };
+  }
+
+  buildPitchRejectedEmail(pitchTitle: string, reason: string): Pick<SendEmailOptions, "subject" | "html" | "text"> {
+    return {
+      subject: "Pitch decision — PitchDeck Nigeria",
+      text: `Your pitch "${pitchTitle}" was not approved. ${reason}`,
+      html: `<p>Your pitch <strong>${pitchTitle}</strong> was not approved.</p><p>${reason}</p>`,
+    };
+  }
+
+  buildReviewerAssignedEmail(pitchTitle: string, adminUrl: string): Pick<SendEmailOptions, "subject" | "html" | "text"> {
+    return {
+      subject: "Review assignment — PitchDeck Nigeria",
+      text: `You were assigned to review "${pitchTitle}". ${adminUrl}`,
+      html: `<p>You were assigned to review <strong>${pitchTitle}</strong>.</p><p><a href="${adminUrl}">Open reviewer workspace</a></p>`,
+    };
+  }
+
+  buildSponsorVerifiedEmail(orgName: string): Pick<SendEmailOptions, "subject" | "html" | "text"> {
+    return {
+      subject: "Organisation verified — PitchDeck Nigeria",
+      text: `Your organisation "${orgName}" has been verified.`,
+      html: `<p>Your organisation <strong>${orgName}</strong> is now verified. You may browse approved pitches in discovery.</p>`,
+    };
+  }
+
+  buildMembershipAddedEmail(orgName: string): Pick<SendEmailOptions, "subject" | "html" | "text"> {
+    return {
+      subject: "Added to sponsor organisation",
+      text: `You were added to ${orgName} on PitchDeck Nigeria.`,
+      html: `<p>You were added to <strong>${orgName}</strong>.</p>`,
+    };
+  }
 }
